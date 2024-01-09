@@ -1,10 +1,12 @@
 package MQproject.broker.Interface;
 
-import MQproject.broker.model.ClientInformation;
+import MQproject.broker.model.Client;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@Service
 public interface ClientHandler {
+
 
     public void handleNewClient();
 
@@ -12,11 +14,11 @@ public interface ClientHandler {
 
     public void sendMessage(String message, int clientId);
 
-    public void sendMessageToAll(String message);
+    public Client getClientById(String clientId);
 
-    public List<Integer> getClientsId();
+    public List<Client> getClients();
 
-    public ClientInformation getClientInformation(int clientId);
+    public List<Integer> getClientIds();
 
     public void onSendMessageComplete();
 }
