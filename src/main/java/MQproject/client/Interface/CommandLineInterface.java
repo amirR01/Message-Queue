@@ -14,7 +14,7 @@ public interface CommandLineInterface {
 
     public void printWarning(String message);
 
-    public void getCommand();
+    public String getCommand();
 
     public void handleCommands(String command);
 }
