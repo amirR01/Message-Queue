@@ -1,5 +1,7 @@
 package MQproject.client.Interface;
 
+import java.util.LinkedList;
+
 public interface CommandLineInterface {
 
     public void runCommandLineInterface();
@@ -16,5 +18,5 @@ public interface CommandLineInterface {
 
     public String getCommand();
 
-    public void handleCommands(String command);
+    public void handleCommands(LinkedList<String> command);
 }

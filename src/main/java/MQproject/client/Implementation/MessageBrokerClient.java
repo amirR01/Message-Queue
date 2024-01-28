@@ -1,72 +1,55 @@
 package MQproject.client.Implementation;
 
 import MQproject.client.Interface.Client;
+import MQproject.client.Interface.HandleServerConnection;
 
 public class MessageBrokerClient implements Client {
+    private final HandleServerConnection handleServerConnection;
+
+    public Object getServer() {
+        return server;
+    }
+
+    public Object setServer(Object server) {
+        return this.server = server;
+    }
+
+    private Object server;
+
+    public MessageBrokerClient() {
+        this.handleServerConnection = new HandleServerConnectionImpl();
+    }
 
     @Override
     public void runClient() {
-        System.out.println("Client is running.");
-        // Implementation for running the client
-        // Your code here...
-        // For example:
-        // Start the message broker client and establish connections
-        // Initialize any necessary resources
-        // Start listening for incoming messages
-
+        handleServerConnection.connectToServer(server);
     }
 
     @Override
     public void stopClient() {
-        System.out.println("Client is stopping.");
-        // Implementation for stopping the client
-        // Your code here...
-        // For example:
-        // Stop the message broker client and close connections
-        // Release any acquired resources
-        // Stop listening for incoming messages
+        handleServerConnection.disconnectFromServer();
     }
 
     @Override
-    public void subscribe(Object server) {
-        System.out.println("Subscribing to the server: " + server);
-        // Implementation for subscribing to a server
-        // Your code here...
-        // For example:
-        // Send a subscription request to the server
-        // Handle the response from the server
-        // Start receiving messages from the subscribed server
+    public void subscribe(Object partition) {
+        // Add your logic to subscribe to a topic here
+        // server.sub(partition)
+        // returns the broker of the partition
     }
 
     @Override
-    public void unsubscribe(Object server) {
-        System.out.println("Unsubscribing from the server: " + server);
-        // Implementation for unsubscribing from a server
-        // Your code here...
-        // For example:
-        // Send an unsubscription request to the server
-        // Handle the response from the server
-        // Stop receiving messages from the unsubscribed server
+    public void unsubscribe(Object partition) {
+        // Add your logic to unsubscribe from a topic here
+        // set
     }
 
     @Override
     public void pull(Object server) {
-        System.out.println("Pulling messages from the server: " + server);
-        // Implementation for pulling messages from a server
-        // Your code here...
-        // For example:
-        // Send a pull request to the server
-        // Receive and process the pulled messages
+        // Add your logic to pull a message from the server here
     }
 
     @Override
     public void push(Object server) {
-        System.out.println("Pushing messages to the server: " + server);
-        // Implementation for pushing messages to a server
-        // Your code here...
-        // For example:
-        // Send the messages to the server
-        // Handle the response from the server
-        // Confirm the successful delivery of the messages
+        // Add your logic to push a message to the server here
     }
 }

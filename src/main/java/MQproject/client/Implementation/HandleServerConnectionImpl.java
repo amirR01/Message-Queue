@@ -17,12 +17,14 @@ public class HandleServerConnectionImpl implements HandleServerConnection {
     @Override
     public void connectToServer(Object server) {
         // Implementation for connecting to a server
+        connectedServer = server;
 
     }
 
     @Override
     public void disconnectFromServer() {
         // Implementation for disconnecting from the server
+        connectedServer = null;
     }
 
     @Override
