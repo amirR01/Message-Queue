@@ -11,43 +11,6 @@ import MQproject.client.Interface.Client;
 
 public class ClientImplementation implements Client{
 
-    // NetworkTest readd
-    public void readNetwork(int serverPortNumber, String ipAddress) throws UnknownHostException {
-        
-        // add a socket connection with server
-        InetAddress host = InetAddress.getLocalHost();
-        try {
-            Socket clientSocket = new Socket(host.getHostName(), serverPortNumber);
-            InputStreamReader socketReader = new InputStreamReader(clientSocket.getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(socketReader);
-            String recvLine = bufferedReader.readLine();
-            System.out.println(recvLine);
-
-            clientSocket.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Networktest write
-    public void writeNetwork(String message, int serverPortNumber, String ipAddress) {
-        
-        // add a socket connection with server
-        try {
-            InetAddress host = InetAddress.getLocalHost();
-
-            Socket clientSocket = new Socket(host.getHostName(), serverPortNumber);
-            PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-            printWriter.println(message);
-
-            clientSocket.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void main(String[] args) {
         ClientImplementation c = new ClientImplementation();
         c.push(0, "0001", "First Message!");
