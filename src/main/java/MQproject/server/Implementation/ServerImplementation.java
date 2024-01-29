@@ -1,14 +1,33 @@
 package MQproject.server.Implementation;
 
 import java.net.*;
-import java.util.ArrayList;
+import java.util.*;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import MQproject.server.Interface.Server;
 
 import java.io.*;
-
+@Service
 public class ServerImplementation implements Server{
+
+    @Autowired
+    private RoundRobinLoadBalancer loadBalancer;
+
+    private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
+    private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
+    private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
     
+
+    public ServerImplementation() {
+        // TODO: Get these brokers from server.
+        allBrokers.add("Broker1");
+        allBrokers.add("Broker2");
+        allBrokers.add("Broker3");
+    }
+
+
 
     public void clientHandler() {
 
@@ -76,12 +95,21 @@ public class ServerImplementation implements Server{
         // } catch (Exception e) {
         //     // TODO: handle exception
         // }
+
+        // assign a random broker to the producer key
+        for (int key = 0; key < producerKeys.size(); key++) {
+            String nextBroker = loadBalancer.getNextBroker();
+            brokerKeys.put(producerKeys.get(key), nextBroker);
+        }
+
+        // TODO: Return that brokerKeys to producer.
     }
 
     @Override
     public void respondSubscription(ArrayList<String> broker_ips) {
         // TODO Auto-generated method stub
         // throw new UnsupportedOperationException("Unimplemented method 'respondSubscription'");
+        
     }
 
     @Override
