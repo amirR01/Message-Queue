@@ -1,5 +1,5 @@
 package MQproject.client.Interface;
 
-public class Exeptions {
+public class Exceptions {
     
 }

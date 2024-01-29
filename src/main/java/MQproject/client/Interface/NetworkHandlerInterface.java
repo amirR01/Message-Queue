@@ -1,7 +1,9 @@
 package MQproject.client.Interface;
 
-import java.net.UnknownHostException;
+import org.springframework.stereotype.Service;
 
+import java.net.UnknownHostException;
+@Service
 public interface NetworkHandlerInterface {
     public void readNetwork(int serverPortNumber, String ipAddress) throws UnknownHostException;
 
