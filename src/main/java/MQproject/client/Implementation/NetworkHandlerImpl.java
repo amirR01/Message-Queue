@@ -2,49 +2,85 @@ package MQproject.client.Implementation;
 
 import MQproject.client.Interface.NetworkHandlerInterface;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 
 
-public class NetworkHandlerImpl implements NetworkHandlerInterface{
+public class NetworkHandlerImpl implements NetworkHandlerInterface {
+    private final HashMap<Integer, Socket> portSocketMap;
+
+    public NetworkHandlerImpl() {
+        this.portSocketMap = new HashMap<>();
+    }
     @Override
-    public void readNetwork(int serverPortNumber, String ipAddress) throws UnknownHostException {
-
-        // add a socket connection with server
-        InetAddress host = InetAddress.getLocalHost();
+    public int connect(String serverAddress, int port) {
         try {
-            Socket clientSocket = new Socket(host.getHostName(), serverPortNumber);
-            InputStreamReader socketReader = new InputStreamReader(clientSocket.getInputStream());
-            BufferedReader bufferedReader = new BufferedReader(socketReader);
-            String recvLine = bufferedReader.readLine();
-            System.out.println(recvLine);
+            Socket socket = new Socket(serverAddress, port);
+            int localPort = socket.getLocalPort();
+            portSocketMap.put(localPort, socket);
+            return localPort;
+        } catch (UnknownHostException e) {
+            // Handle unknown host exception
+            e.printStackTrace();
+        } catch (IOException e) {
+            // Handle IO exception
+            e.printStackTrace();
+        }
+        return -1; // Return -1 if connection fails
+    }
 
-            clientSocket.close();
-
-        } catch (Exception e) {
+    @Override
+    public void disconnect(int localPort) {
+        try {
+            Socket socket = portSocketMap.get(localPort);
+            if (socket != null) {
+                socket.close();
+                portSocketMap.remove(localPort);
+            }
+        } catch (IOException e) {
+            // Handle IO exception
             e.printStackTrace();
         }
     }
 
     @Override
-    public void writeNetwork(String message, int serverPortNumber, String ipAddress) {
-
-        // add a socket connection with server
+    public String readMessage(int localPort) {
         try {
-            InetAddress host = InetAddress.getLocalHost();
+            Socket socket = portSocketMap.get(localPort);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            return reader.readLine();
+        } catch (IOException e) {
+            // Handle IO exception
+            e.printStackTrace();
+        }
+        return null; // Return null if reading fails
+    }
 
-            Socket clientSocket = new Socket(host.getHostName(), serverPortNumber);
-            PrintWriter printWriter = new PrintWriter(clientSocket.getOutputStream());
-            printWriter.println(message);
-
-            clientSocket.close();
-
-        } catch (Exception e) {
+    @Override
+    public void sendMessage(int localPort, String message) {
+        try {
+            Socket socket = portSocketMap.get(localPort);
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            writer.println(message);
+        } catch (IOException e) {
+            // Handle IO exception
             e.printStackTrace();
         }
     }
 
+    public static void main(String[] args) {
+        NetworkHandlerInterface a = new NetworkHandlerImpl();
+        String ip = "127.0.0.1";
+        int peerPort = 12345;
+        int localPort = a.connect(ip, peerPort);
+        a.sendMessage(localPort, "hello buddy");
+        String response = a.readMessage(localPort);
+        System.out.println(response);
+    }
 }
+
