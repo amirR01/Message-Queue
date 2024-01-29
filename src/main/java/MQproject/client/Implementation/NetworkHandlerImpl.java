@@ -18,9 +18,9 @@ public class NetworkHandlerImpl implements NetworkHandlerInterface {
         this.portSocketMap = new HashMap<>();
     }
     @Override
-    public int connect(String serverAddress, int port) {
+    public int connect(String address, int port) {
         try {
-            Socket socket = new Socket(serverAddress, port);
+            Socket socket = new Socket(address, port);
             int localPort = socket.getLocalPort();
             portSocketMap.put(localPort, socket);
             return localPort;
@@ -71,16 +71,6 @@ public class NetworkHandlerImpl implements NetworkHandlerInterface {
             // Handle IO exception
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) {
-        NetworkHandlerInterface a = new NetworkHandlerImpl();
-        String ip = "127.0.0.1";
-        int peerPort = 12345;
-        int localPort = a.connect(ip, peerPort);
-        a.sendMessage(localPort, "hello buddy");
-        String response = a.readMessage(localPort);
-        System.out.println(response);
     }
 }
 
