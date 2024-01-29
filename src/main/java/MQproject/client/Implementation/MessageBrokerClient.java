@@ -5,19 +5,17 @@ import MQproject.client.Interface.HandleServerConnection;
 
 public class MessageBrokerClient implements Client {
     private final HandleServerConnection handleServerConnection;
-
-    public Object getServer() {
-        return server;
-    }
-
-    public Object setServer(Object server) {
-        return this.server = server;
-    }
-
+    public CommandLineInterfaceImpl commandLineInterface;
     private Object server;
+
+    private final Producer producer;
+    private final Consumer consumer;
 
     public MessageBrokerClient() {
         this.handleServerConnection = new HandleServerConnectionImpl();
+        this.consumer = new Consumer(this);
+        this.producer = new Producer(this);
+        this.commandLineInterface = new CommandLineInterfaceImpl(producer, consumer, this);
     }
 
     @Override
@@ -51,5 +49,13 @@ public class MessageBrokerClient implements Client {
     @Override
     public void push(Object server) {
         // Add your logic to push a message to the server here
+    }
+
+    public Object getServer() {
+        return server;
+    }
+
+    public Object setServer(Object server) {
+        return this.server = server;
     }
 }

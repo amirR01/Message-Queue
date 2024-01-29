@@ -7,14 +7,15 @@ import java.util.LinkedList;
 import java.util.Scanner;
 
 public class CommandLineInterfaceImpl implements CommandLineInterface {
-    private final MessageBrokerClient client;
     private final Producer producer;
     private final Consumer consumer;
 
-    public CommandLineInterfaceImpl(MessageBrokerClient client) {
+    private final MessageBrokerClient client;
+
+    public CommandLineInterfaceImpl(Producer producer, Consumer consumer, MessageBrokerClient client) {
+        this.producer = producer;
+        this.consumer = consumer;
         this.client = client;
-        this.producer = new Producer(client);
-        this.consumer = new Consumer(client);
     }
 
     @Override
@@ -23,7 +24,7 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
         String command = "";
         while (!command.equals("exit")) {
             command = scanner.nextLine();
-            LinkedList<String> command_args = new LinkedList<>();
+            LinkedList<String> command_args;
             command_args = new LinkedList<>(Arrays.asList(command.split(" ")));
             handleCommands(command_args);
         }
