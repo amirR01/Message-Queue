@@ -6,16 +6,17 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+
 public class CommandLineInterfaceImpl implements CommandLineInterface {
-    private final Producer producer;
-    private final Consumer consumer;
+    private final ProducerImpl producer;
+    private final ConsumerImpl consumer;
 
-    private final MessageBrokerClient client;
+    public static NetworkHandlerImpl networkHandler;
 
-    public CommandLineInterfaceImpl(Producer producer, Consumer consumer, MessageBrokerClient client) {
+    public CommandLineInterfaceImpl(ProducerImpl producer, ConsumerImpl consumer) {
         this.producer = producer;
         this.consumer = consumer;
-        this.client = client;
+        this.networkHandler = new NetworkHandlerImpl();
     }
 
     @Override
@@ -65,7 +66,7 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
     public void handleCommands(LinkedList<String> command) {
         switch (command.getFirst()) {
             case "produce":
-                producer.produceMessage(command.get(1), client.getServer());
+                producer.produceMessage(command.get(1));
                 break;
             case "consume":
                 consumer.consumeMessage();
