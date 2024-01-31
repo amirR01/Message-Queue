@@ -25,7 +25,8 @@ public class ConsumerImpl implements Consumer{
 
     public void consumeMessage() {
         // Use the broker IP to pull a message from the server
-        networkHandler.readNetwork();
+
+        networkHandler.readMessage(8080); /// change the local port
 
     }
 
