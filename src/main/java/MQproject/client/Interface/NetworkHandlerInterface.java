@@ -5,7 +5,8 @@ import org.springframework.stereotype.Service;
 import java.net.UnknownHostException;
 @Service
 public interface NetworkHandlerInterface {
-    public void readNetwork(int serverPortNumber, String ipAddress) throws UnknownHostException;
-
-    public void writeNetwork(String message, int serverPortNumber, String ipAddress);
+    int connect(String address, int port);
+    void disconnect(int localPort);
+    String readMessage(int localPort);
+    void sendMessage(int localPort, String message);
 }
