@@ -8,6 +8,4 @@ public interface Broker {
 
     public Object getPartitionsAndClientsMapping();
 
-    public void resetMapping();
-
 }
