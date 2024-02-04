@@ -1,5 +1,7 @@
 package MQproject.client.Implementation;
 
+import java.util.Objects;
+
 public class Tuple<A, B> {
     private final A first;
     private final B second;
@@ -15,6 +17,14 @@ public class Tuple<A, B> {
 
     public B getSecond() {
         return second;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Tuple<?, ?> tuple = (Tuple<?, ?>) obj;
+        return Objects.equals(first, tuple.first) && Objects.equals(second, tuple.second);
     }
 }
 
