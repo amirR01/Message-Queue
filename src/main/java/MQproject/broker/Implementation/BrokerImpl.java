@@ -1,4 +1,4 @@
-package MQproject.broker.implementation;
+package MQproject.broker.Implementation;
 
 public class BrokerImpl {
     public void runBroker() {
