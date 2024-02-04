@@ -12,18 +12,19 @@ import java.util.HashMap;
 
 
 public class NetworkHandlerImpl implements NetworkHandlerInterface {
-    private final HashMap<Integer, Socket> portSocketMap;
+    private final HashMap<Tuple<String, Integer>, Socket> portSocketMap;
 
     public NetworkHandlerImpl() {
         this.portSocketMap = new HashMap<>();
     }
-    @Override
-    public int connect(String address, int port) {
+
+
+    public int connect(String ip, int port) {
         try {
-            Socket socket = new Socket(address, port);
-            int localPort = socket.getLocalPort();
-            portSocketMap.put(localPort, socket);
-            return localPort;
+            Socket socket = new Socket(ip, port);
+            Tuple<String, Integer> ipPort = new Tuple<>(ip, port);
+            portSocketMap.put(ipPort, socket);
+            return 0;
         } catch (UnknownHostException e) {
             // Handle unknown host exception
             e.printStackTrace();
@@ -35,14 +36,15 @@ public class NetworkHandlerImpl implements NetworkHandlerInterface {
     }
 
     @Override
-    public void disconnect(int localPort) {
+    public void disconnect(String ip, int port) {
         try {
-            Socket socket = portSocketMap.get(localPort);
+            Tuple<String, Integer> ipPort = new Tuple<>(ip, port);
+            Socket socket = portSocketMap.get(ipPort); // Double check equality logic
             if (socket != null) {
                 socket.close();
-                portSocketMap.remove(localPort);
+                portSocketMap.remove(ipPort);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             // Handle IO exception
             e.printStackTrace();
         }
