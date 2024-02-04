@@ -29,24 +29,20 @@ public class ProducerImpl implements Producer {
     @Override
     public void produceMessage(String message) {
         Tuple<String, Integer> ip_port = addressMap.get("broker");
-        networkHandler.writeNetwork(message, ip_port.getSecond(), ip_port.getFirst());
+        networkHandler.sendMessage(ip_port.getSecond(), message);
     }
 
     @Override
     public void listenForChangesFromServer() {
         new Thread(() -> {
             while (true) {
-                try {
-                    Tuple<String, Integer> server_ip_port = addressMap.get("server");
-                    String response = networkHandler.readNetwork(server_ip_port.getSecond(), server_ip_port.getFirst());
-                    if (response != null) {
-                        String[] response_split = response.split(" ");
-                        if (response_split[0].equals("update")) {
-                            addressMap.put(response_split[1], new Tuple<String,Integer>(response_split[2], Integer.parseInt(response_split[3])));
-                        }
+                Tuple<String, Integer> server_ip_port = addressMap.get("server");
+                String response = networkHandler.readMessage(server_ip_port.getSecond());
+                if (response != null) {
+                    String[] response_split = response.split(" ");
+                    if (response_split[0].equals("update")) {
+                        addressMap.put(response_split[1], new Tuple<String,Integer>(response_split[2], Integer.parseInt(response_split[3])));
                     }
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
                 }
             }
         }).start();
@@ -55,9 +51,9 @@ public class ProducerImpl implements Producer {
     @Override
     public void connectToServer(Object server) throws UnknownHostException {
         Tuple<String, Integer> server_ip_port = addressMap.get("server");
-        networkHandler.writeNetwork("connect", server_ip_port.getSecond(), server_ip_port.getFirst());
+        networkHandler.sendMessage(server_ip_port.getSecond(), "connect");
         while (true){
-            String response = networkHandler.readNetwork(server_ip_port.getSecond(), server_ip_port.getFirst());
+            String response = networkHandler.readMessage(server_ip_port.getSecond());
             if (response != null){
                 String[] response_split = response.split(" ");
                 if (response_split[0].equals("connect")){
