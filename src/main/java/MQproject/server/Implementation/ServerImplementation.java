@@ -13,7 +13,9 @@ import java.io.*;
 public class ServerImplementation implements Server{
 
     @Autowired
-    private RoundRobinLoadBalancer loadBalancer;
+    private RoundRobinLoadBalancer producerLoadBalancer;
+    @Autowired
+    private RoundRobinLoadBalancer consumerLoadBalancer;
 
     private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
     private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
@@ -89,7 +91,6 @@ public class ServerImplementation implements Server{
 
     @Override
     public void respondProducer(int producerPortNumber) {
-        // TODO Auto-generated method stub
         // try {
         //     return portNumber;
         // } catch (Exception e) {
@@ -98,7 +99,7 @@ public class ServerImplementation implements Server{
 
         // assign a random broker to the producer key
         for (int key = 0; key < producerKeys.size(); key++) {
-            String nextBroker = loadBalancer.getNextBroker();
+            String nextBroker = producerLoadBalancer.getNextBroker();
             brokerKeys.put(producerKeys.get(key), nextBroker);
         }
 
@@ -106,10 +107,17 @@ public class ServerImplementation implements Server{
     }
 
     @Override
-    public void respondSubscription(ArrayList<String> broker_ips) {
-        // TODO Auto-generated method stub
+    public ArrayList<String> respondSubscription() {
         // throw new UnsupportedOperationException("Unimplemented method 'respondSubscription'");
-        
+
+        ArrayList<String> broker_ips;
+
+        for (int broker = 0; broker < brokersNumber; broker++) {
+            String nextBroker = consumerLoadBalancer.getNextBroker();
+            broker_ips.add(nextBroker);
+        }
+
+        return broker_ips;
     }
 
     @Override
