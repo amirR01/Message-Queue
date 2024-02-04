@@ -27,7 +27,7 @@ public class NetworkHandlerImpl implements NetworkHandlerInterface {
 
     @PostConstruct
     public void init() {
-        listen();
+        listen(12345);
     }
 
 
@@ -63,34 +63,36 @@ public class NetworkHandlerImpl implements NetworkHandlerInterface {
     }
 
     @Override
-    public String readMessage(int localPort) {
-        try {
-            Socket socket = portSocketMap.get(localPort);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            return reader.readLine();
-        } catch (IOException e) {
-            // Handle IO exception
-            e.printStackTrace();
+    public String readMessage(String ip, int port) {
+        Tuple<String, Integer> ipPort = new Tuple<>(ip, port);
+        lock.lock();
+        ArrayList<String> messages = messageMap.get(ipPort);
+        if (messages != null && !messages.isEmpty()) {
+            String firstMessage = messages.remove(0);
+            lock.unlock();
+            return firstMessage;
         }
-        return null; // Return null if reading fails
+        lock.unlock();
+        return null; // Handle the case when the list is empty
     }
 
     @Override
-    public void sendMessage(int localPort, String message) {
-        try {
-            Socket socket = portSocketMap.get(localPort);
-            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
-            writer.println(message);
-        } catch (IOException e) {
-            // Handle IO exception
-            e.printStackTrace();
+    public void sendMessage(String ip, int port, String message) {
+        Tuple<String, Integer> ipPort = new Tuple<>(ip, port);
+        Socket socket = portSocketMap.get(ipPort);
+        if (socket != null) {
+            try {
+                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                writer.println(message);
+            } catch (IOException e) {
+                // Handle IO exception
+                e.printStackTrace();
+            }
         }
     }
-    private void listen() {
+    private void listen(int port) {
         new Thread(() -> {
             try {
-                // choose a random port number to listen on
-                int port = 12345;
                 ServerSocket serverSocket = new ServerSocket(port);
                 while (true) {
                     Socket socket = serverSocket.accept();
