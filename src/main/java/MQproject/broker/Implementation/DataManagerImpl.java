@@ -7,17 +7,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 
-@Controller
 public class DataManagerImpl implements DataManager {
     @Autowired
     private DataManagementConfig config;
     private HashMap<Integer, Partition> partitions = new HashMap<>();
+    private HashMap<Integer, Integer> partitionIdToBrokerId = new HashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
@@ -28,7 +28,6 @@ public class DataManagerImpl implements DataManager {
             e.printStackTrace(); // Handle the exception according to your application's requirements
         }
     }
-
 
     // TODO(): search to know it that reduce performance that all files are in same directory
     private void storePartitionObjectInFile() throws IOException {
@@ -71,6 +70,10 @@ public class DataManagerImpl implements DataManager {
             e.printStackTrace();
         }
         // TODO(): send data for the replicas asynchronously
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            // send the data to the replicas
+
+        });
     }
 
     public String readMessage(int partitionId) {
@@ -78,27 +81,35 @@ public class DataManagerImpl implements DataManager {
         if (partition == null) {
             throw new RuntimeException("partition not found");
         }
+        String message = "";
         try (RandomAccessFile file = new RandomAccessFile(partition.partitionsAddress, "r")) {
             file.seek(partition.headIndex);
-            // Read the data
-            String message = file.readLine();
+            // check if there is a new message
+            if (file.getFilePointer() == file.length()) {
+                return null;
+            }
+            message = file.readLine();
             // update the head index
             partition.headIndex = (int) file.getFilePointer();
-            return message;
         } catch (IOException e) {
             e.printStackTrace();
         }
         // TODO(): send data of head index for the replicas asynchronously
-        return null;
+//        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+//            // send the head index to the replicas
+//            // ...
+//        });
+
+        return message;
     }
 
-    public void addPartition(int partitionId, byte[] partitionData, int headIndex, boolean isReplica) {
+    public void addPartition(int partitionId, int leaderBrokerId, int replicaBrokerId, String partitionData, int headIndex, boolean isReplica) {
         // check if this partition already exists
         if (partitions.containsKey(partitionId)) {
             throw new RuntimeException("partition already exists");
         }
         String partitionsAddress = config.getPartitionsAddress() + partitionId + ".txt";
-        Partition newPartition = new Partition(partitionId, headIndex, isReplica, partitionsAddress);
+        Partition newPartition = new Partition(partitionId, leaderBrokerId, replicaBrokerId, headIndex, isReplica, partitionsAddress);
         partitions.put(partitionId, newPartition);
         // create a file for the new partition and write the data to it
         File file = new File(partitionsAddress);
@@ -108,7 +119,9 @@ public class DataManagerImpl implements DataManager {
             file.createNewFile();
             // write the data to the file
             FileOutputStream fileOutputStream = new FileOutputStream(file);
-            fileOutputStream.write(partitionData);
+            if (partitionData != null) {
+                fileOutputStream.write(partitionData.getBytes());
+            }
             fileOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -125,6 +138,10 @@ public class DataManagerImpl implements DataManager {
         file.delete();
         // delete the partition from the map
         partitions.remove(partitionId);
+    }
+
+    public void sendDataToReplica(String data, Integer PartitionId, Integer brokerId) {
+
     }
 
     public void makePartitionReplica(int partitionId) {

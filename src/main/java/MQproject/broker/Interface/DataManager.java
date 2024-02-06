@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface DataManager {
-    public void addMessage(String message,int partitionId);
+    public void addMessage(String message, int partitionId);
 
     public String readMessage(int partitionId);
 
-    public void addPartition(int partitionId, byte[] partitionData, int headIndex, boolean isReplica);
+    public void addPartition(int partitionId, int leaderBrokerId, int replicaBrokerId, String partitionData, int headIndex, boolean isReplica);
 
     public void deletePartition(int partitionId);
 
@@ -21,4 +21,6 @@ public interface DataManager {
     public DataManagementConfig getConfig();
 
     public void setConfig(DataManagementConfig config);
+
+    public void sendDataToReplica(String data, Integer PartitionId, Integer brokerId);
 }
