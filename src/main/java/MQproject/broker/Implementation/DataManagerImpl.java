@@ -20,6 +20,8 @@ public class DataManagerImpl implements DataManager {
     private HashMap<Integer, Partition> partitions = new HashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
 
+    // TODO: remove read messages and free the disk
+    // kafka uses segments to handle files not getting to big.
 
     @PostConstruct
     public void init() {
@@ -57,13 +59,38 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
+    public void addPartition(int partitionId, int leaderBrokerId, int replicaBrokerId, String partitionData, int headIndex, boolean isReplica) {
+        // check if this partition already exists
+        if (partitions.containsKey(partitionId)) {
+            throw new RuntimeException("partition already exists");
+        }
+        String partitionsAddress = config.getPartitionsAddress() + partitionId + ".txt";
+        Partition newPartition = new Partition(partitionId, leaderBrokerId, replicaBrokerId, headIndex, isReplica, partitionsAddress);
+        partitions.put(partitionId, newPartition);
+        // create a file for the new partition and write the data to it
+        System.out.println(partitionsAddress);
+        File file = new File(partitionsAddress);
+        // write the data to the file
+        try {
+            // create a new file
+            file.createNewFile();
+            // write the data to the file
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+            if (partitionData != null) {
+                fileOutputStream.write(partitionData.getBytes());
+            }
+            fileOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addMessage(String message, int partitionId, Boolean isReplica) {
         Partition partition = partitions.get(partitionId);
         if (partition == null) {
             throw new RuntimeException("partition not found");
         }
-        if (partition.isReplica != isReplica) {
+        if (partition.isReplica == isReplica) {
             throw new RuntimeException("partition is not available for this operation");
         }
         // write the message to the file
@@ -94,55 +121,7 @@ public class DataManagerImpl implements DataManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // TODO(): send data of head index for the replicas asynchronously
-//        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-//            // send the head index to the replicas
-//            // ...
-//        });
-
         return message;
-    }
-
-    public void addPartition(int partitionId, int leaderBrokerId, int replicaBrokerId, String partitionData, int headIndex, boolean isReplica) {
-        // check if this partition already exists
-        if (partitions.containsKey(partitionId)) {
-            throw new RuntimeException("partition already exists");
-        }
-        String partitionsAddress = config.getPartitionsAddress() + partitionId + ".txt";
-        Partition newPartition = new Partition(partitionId, leaderBrokerId, replicaBrokerId, headIndex, isReplica, partitionsAddress);
-        partitions.put(partitionId, newPartition);
-        // create a file for the new partition and write the data to it
-        System.out.println(partitionsAddress);
-        File file = new File(partitionsAddress);
-        // write the data to the file
-        try {
-            // create a new file
-            file.createNewFile();
-            // write the data to the file
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            if (partitionData != null) {
-                fileOutputStream.write(partitionData.getBytes());
-            }
-            fileOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void deletePartition(int partitionId) {
-        Partition partition = partitions.get(partitionId);
-        if (partition == null) {
-            throw new RuntimeException("partition not found");
-        }
-        // delete the file
-        File file = new File(partition.partitionsAddress);
-        file.delete();
-        // delete the partition from the map
-        partitions.remove(partitionId);
-    }
-
-    public void sendDataToReplica(String data, Integer PartitionId, Integer brokerId) {
-
     }
 
     public void makePartitionReplica(int partitionId) {
@@ -183,8 +162,42 @@ public class DataManagerImpl implements DataManager {
         partition.headIndex = headIndex;
     }
 
-    public HashMap<Integer, Partition> getPartitions() {
-        return partitions;
+    public Integer getHeadIndex(Integer partitionId) {
+        Partition partition = partitions.get(partitionId);
+        if (partition == null) {
+            throw new RuntimeException("partition not found");
+        }
+        return partition.headIndex;
+    }
+
+    public void removePartition(int partitionId) {
+        Partition partition = partitions.get(partitionId);
+        if (partition == null) {
+            throw new RuntimeException("partition not found");
+        }
+        // delete the file
+        File file = new File(partition.partitionsAddress);
+        file.delete();
+        // delete the partition from the map
+        partitions.remove(partitionId);
+    }
+
+    public Tuple<Partition, String> getPartition(Integer partitionId) {
+        Partition partition = partitions.get(partitionId);
+        if (partition == null) {
+            throw new RuntimeException("partition not found");
+        }
+        String partitionData;
+        try (RandomAccessFile file = new RandomAccessFile(partition.partitionsAddress, "r")) {
+            file.seek(0);
+            byte[] data = new byte[(int) file.length()];
+            file.read(data);
+            partitionData = new String(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+            partitionData = null;
+        }
+        return new Tuple<>(partition, partitionData);
     }
 
     public DataManagementConfig getConfig() {
