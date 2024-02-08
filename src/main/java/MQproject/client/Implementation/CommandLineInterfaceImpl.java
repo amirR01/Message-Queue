@@ -12,12 +12,9 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
     private final ProducerImpl producer;
     private final ConsumerImpl consumer;
 
-    public static NetworkHandlerImpl networkHandler;
-
     public CommandLineInterfaceImpl(ProducerImpl producer, ConsumerImpl consumer) {
         this.producer = producer;
         this.consumer = consumer;
-        this.networkHandler = new NetworkHandlerImpl();
     }
 
     @Override

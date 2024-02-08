@@ -1,9 +1,10 @@
 package MQproject.client.Interface;
 
 import MQproject.client.model.message.BrokerClientMessage;
+import org.springframework.stereotype.Service;
 
 import java.net.UnknownHostException;
-
+@Service
 public interface Producer {
     void runProducer();
 

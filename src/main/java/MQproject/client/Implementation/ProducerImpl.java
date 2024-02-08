@@ -1,23 +1,15 @@
 package MQproject.client.Implementation;
 
 import MQproject.client.Caller.ServerCaller;
-import MQproject.client.Interface.NetworkHandlerInterface;
 import MQproject.client.Interface.Producer;
 import MQproject.client.model.message.BrokerClientMessage;
 import MQproject.client.model.message.ClientServerMessage;
 import MQproject.client.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.util.HashMap;
 
-
-
-@Component
 public class ProducerImpl implements Producer {
-    @Autowired
-    private NetworkHandlerInterface networkHandler;
 
     @Autowired
     public ServerCaller serverCaller;
