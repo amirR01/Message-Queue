@@ -7,6 +7,7 @@ import MQproject.broker.model.message.BrokerServerMessageAboutPartitions;
 import MQproject.broker.model.message.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,10 @@ public class BrokerServiceImpl implements BrokerService {
     public DataManager dataManager;
 
     public Integer myBrokerId;
-    public Tuple<String, Integer> serveripPort = new Tuple<>("localhost", 9092);
+    @Value("${MQproject.broker.server.address}")
+    public String serverIp;
+    @Value("${MQproject.broker.server.port}")
+    public Integer serverPort;
 
     public HashMap<Integer, List<Integer>> producersPartitions = new HashMap<>();
     public HashMap<Integer, List<Integer>> consumersPartitions = new HashMap<>();
