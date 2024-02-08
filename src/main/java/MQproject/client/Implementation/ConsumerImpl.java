@@ -4,7 +4,7 @@ import MQproject.client.Caller.ServerCaller;
 import MQproject.client.Interface.CommandLineInterface;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.model.message.BrokerClientMessage;
-import MQproject.client.model.message.ClientServerMessageAboutConsumers;
+import MQproject.client.model.message.ClientServerMessage;
 import MQproject.client.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -114,15 +114,15 @@ public class ConsumerImpl implements Consumer {
 
 
     private void registerToServer() {
-        ClientServerMessageAboutConsumers bigMessage = new ClientServerMessageAboutConsumers();
+        ClientServerMessage bigMessage = new ClientServerMessage();
         bigMessage.messages.add(
-                new ClientServerMessageAboutConsumers.ClientServerSmallerMessageAboutConsumers(
+                new ClientServerMessage.ClientServerSmallerMessage(
                         null, myIp, myPort, MessageType.REGISTER_CONSUMER
                 )
         );
-        ClientServerMessageAboutConsumers.ClientServerSmallerMessageAboutConsumers response =
+        ClientServerMessage.ClientServerSmallerMessage response =
                 serverCaller.registerToServer(bigMessage).messages.get(0);
-        myConsumerID = response.consumerId;
+        myConsumerID = response.ClientId;
     }
 
 }

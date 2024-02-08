@@ -4,8 +4,7 @@ import MQproject.client.Caller.ServerCaller;
 import MQproject.client.Interface.NetworkHandlerInterface;
 import MQproject.client.Interface.Producer;
 import MQproject.client.model.message.BrokerClientMessage;
-import MQproject.client.model.message.ClientServerMessageAboutConsumers;
-import MQproject.client.model.message.ClientServerMessageAboutProducers;
+import MQproject.client.model.message.ClientServerMessage;
 import MQproject.client.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,17 +66,17 @@ public class ProducerImpl implements Producer {
     }
 
     private void registerToServer() {
-        ClientServerMessageAboutProducers bigMessage =
-                new ClientServerMessageAboutProducers();
+        ClientServerMessage bigMessage =
+                new ClientServerMessage();
 
         bigMessage.messages.add(
-                new ClientServerMessageAboutProducers.ClientServerSmallerMessageAboutProducers(
+                new ClientServerMessage.ClientServerSmallerMessage(
                         null,myIp,myPort, MessageType.REGISTER_PRODUCER
                 )
         );
-        ClientServerMessageAboutProducers.ClientServerSmallerMessageAboutProducers response =
+        ClientServerMessage.ClientServerSmallerMessage response =
                 serverCaller.registerToServer(bigMessage).messages.get(0);
-        myProducerID = response.ProducerId;
+        myProducerID = response.ClientId;
     }
 
 }
