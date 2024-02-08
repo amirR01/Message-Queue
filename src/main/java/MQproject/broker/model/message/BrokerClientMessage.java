@@ -10,7 +10,7 @@ public class BrokerClientMessage {
         public Integer clientId;
         public Integer partitionId;
 
-        public BrokerClientSmallerMessage(int clientId, int partitionId, String data, MessageType messageType) {
+        public BrokerClientSmallerMessage(Integer clientId, Integer partitionId, String data, MessageType messageType) {
             this.clientId = clientId;
             this.partitionId = partitionId;
             this.data = data;

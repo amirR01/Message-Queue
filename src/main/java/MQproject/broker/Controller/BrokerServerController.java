@@ -17,7 +17,13 @@ public class BrokerServerController {
 
     @PostMapping(value = "/add-partition", consumes = "application/json")
     public ResponseEntity<Object> addPartition(@RequestBody BrokerServerMessageAboutPartitions message) {
-        brokerService.handleNewInformationAboutPartitions(message);
-        return ResponseEntity.ok().build();
+        try {
+            brokerService.handleNewInformationAboutPartitions(message);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            String errorMessage = e.getMessage();
+            ResponseEntity.status(500).body(errorMessage);
+        }
+        return null;
     }
 }

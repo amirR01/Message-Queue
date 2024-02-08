@@ -3,19 +3,19 @@ package MQproject.broker.Implementation;
 import MQproject.broker.Caller.ServerCaller;
 import MQproject.broker.Interface.BrokerService;
 import MQproject.broker.Interface.DataManager;
-import MQproject.broker.model.message.BrokerClientMessage;
-import MQproject.broker.model.message.BrokerServerMessageAboutBrokers;
-import MQproject.broker.model.message.BrokerServerMessageAboutPartitions;
-import MQproject.broker.model.message.MessageType;
+import MQproject.broker.model.message.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class BrokerServiceImpl implements BrokerService {
-
+    @Autowired
+    private RestTemplate restTemplate;
     @Autowired
     public DataManager dataManager;
     @Autowired
@@ -28,16 +28,14 @@ public class BrokerServiceImpl implements BrokerService {
 
     public HashMap<Integer, List<Integer>> producersPartitions = new HashMap<>();
     public HashMap<Integer, List<Integer>> consumersPartitions = new HashMap<>();
+    public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
 
     private final ObjectMapper mapper = new ObjectMapper();
 
 
     public void runBroker() {
-        connectToServer();
         // register yourself to the server
         registerToServer();
-
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     public BrokerClientMessage consumeMessage(BrokerClientMessage message) {
@@ -50,6 +48,7 @@ public class BrokerServiceImpl implements BrokerService {
             if (partitions == null) {
                 throw new IllegalArgumentException("Client not found");
             }
+            // TODO: read from the partition that client wants.
             BrokerClientMessage responseMessage = new BrokerClientMessage();
             for (Integer partitionId : partitions) {
                 String data = dataManager.readMessage(partitionId);
@@ -72,8 +71,41 @@ public class BrokerServiceImpl implements BrokerService {
                         !producersPartitions.get(smallerMessage.clientId).contains(smallerMessage.partitionId)) {
                     throw new IllegalArgumentException("Client not allowed to produce to this partition");
                 }
-                dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId);
+                dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId, false);
+                // TODO(): send data for the replicas asynchronously
+                sendDataAsyncToTheReplica(smallerMessage);
             }
+        }
+    }
+
+    private void sendDataAsyncToTheReplica(BrokerClientMessage.BrokerClientSmallerMessage smallerMessage) {
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            // send the data to the replicas
+            Integer replicaBrokerId = dataManager.getReplicaBrokerId(smallerMessage.partitionId);
+            Tuple<String, Integer> brokerAddress = brokersAddress.get(replicaBrokerId);
+            if (brokerAddress == null) {
+                // request the server for the brokers address
+                updateBrokersAddress();
+                brokerAddress = brokersAddress.get(replicaBrokerId);
+            }
+            BrokerBrokerMessage brokerBrokerMessage = new BrokerBrokerMessage();
+            brokerBrokerMessage.messages.add(
+                    new BrokerBrokerMessage.BrokerBrokerSmallerMessage(
+                            myBrokerId, smallerMessage.partitionId, smallerMessage.data, MessageType.REPLICATE_MESSAGE
+                    )
+            );
+            restTemplate.postForEntity(
+                    "http://" + brokerAddress.getFirst() + ":" + brokerAddress.getFirst() + "/api/broker-broker/update-replicas-data",
+                    brokerBrokerMessage,
+                    BrokerBrokerMessage.class
+            );
+        });
+    }
+
+    private void updateBrokersAddress() {
+        BrokerServerMessageAboutBrokers message = serverCaller.getBrokersList();
+        for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
+            brokersAddress.put(smallerMessage.brokerId, new Tuple<>(smallerMessage.brokerIp, smallerMessage.brokerPort));
         }
     }
 
@@ -81,7 +113,7 @@ public class BrokerServiceImpl implements BrokerService {
         BrokerServerMessageAboutBrokers bigMessage = new BrokerServerMessageAboutBrokers();
         bigMessage.messages.add(
                 new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(
-                        null,myIp,myPort,MessageType.REGISTER_BROKER
+                        null, myIp, myPort, MessageType.REGISTER_BROKER
                 )
         );
         BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers response =
@@ -111,16 +143,27 @@ public class BrokerServiceImpl implements BrokerService {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void connectToServer() {
-    }
-
-    public void disconnectFromServer() {
-    }
-
 
     public Object getPartitionReplicaBrokers(int partitionId) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-
+    public void updateReplicasData(BrokerBrokerMessage message) {
+        for (BrokerBrokerMessage.BrokerBrokerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType != MessageType.REPLICATE_MESSAGE) {
+                throw new IllegalArgumentException("Invalid message type");
+            } else {
+                dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId, true);
+            }
+        }
+    }
+    public void updatePartitionsHeadIndex(BrokerBrokerMessage message) {
+        for (BrokerBrokerMessage.BrokerBrokerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType != MessageType.UPDATE_HEAD_INDEX) {
+                throw new IllegalArgumentException("Invalid message type");
+            } else {
+                dataManager.updateHeadIndex(smallerMessage.partitionId, Integer.parseInt(smallerMessage.data));
+            }
+        }
+    }
 }

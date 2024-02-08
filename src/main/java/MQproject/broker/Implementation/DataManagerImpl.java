@@ -7,18 +7,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.scheduling.annotation.Scheduled;
 import java.io.*;
 import java.util.HashMap;
-import java.util.concurrent.CompletableFuture;
 
 
 public class DataManagerImpl implements DataManager {
     @Autowired
     private DataManagementConfig config;
     private HashMap<Integer, Partition> partitions = new HashMap<>();
-    private HashMap<Integer, Integer> partitionIdToBrokerId = new HashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
+
 
     @PostConstruct
     public void init() {
@@ -30,6 +29,7 @@ public class DataManagerImpl implements DataManager {
     }
 
     // TODO(): search to know it that reduce performance that all files are in same directory
+    @Scheduled(fixedRate = 60000)
     private void storePartitionObjectInFile() throws IOException {
         // convert partition object to json
         String partitionJson = mapper.writeValueAsString(partitions);
@@ -56,10 +56,13 @@ public class DataManagerImpl implements DataManager {
     }
 
 
-    public void addMessage(String message, int partitionId) {
+    public void addMessage(String message, int partitionId, Boolean isReplica) {
         Partition partition = partitions.get(partitionId);
         if (partition == null) {
             throw new RuntimeException("partition not found");
+        }
+        if (partition.isReplica != isReplica) {
+            throw new RuntimeException("partition is not available for this operation");
         }
         // write the message to the file
         try (RandomAccessFile file = new RandomAccessFile(partition.partitionsAddress, "r")) {
@@ -69,11 +72,6 @@ public class DataManagerImpl implements DataManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        // TODO(): send data for the replicas asynchronously
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            // send the data to the replicas
-
-        });
     }
 
     public String readMessage(int partitionId) {
@@ -158,6 +156,28 @@ public class DataManagerImpl implements DataManager {
             throw new RuntimeException("partition not found");
         }
         partition.isReplica = false;
+    }
+
+    public Integer getReplicaBrokerId(int partitionId) {
+        Partition partition = partitions.get(partitionId);
+        if (partition == null) {
+            throw new RuntimeException("partition not found");
+        }
+        return partition.replicaBrokerId;
+    }
+
+    public void updateHeadIndex(Integer partitionId, Integer headIndex) {
+        Partition partition = partitions.get(partitionId);
+        if (partition == null) {
+            throw new RuntimeException("partition not found");
+        }
+        if (!partition.isReplica) {
+            throw new RuntimeException("partition is not available for this operation");
+        }
+        if (headIndex < partition.headIndex) {
+            throw new RuntimeException("invalid head index");
+        }
+        partition.headIndex = headIndex;
     }
 
     public HashMap<Integer, Partition> getPartitions() {
