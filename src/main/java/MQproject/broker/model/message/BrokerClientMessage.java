@@ -7,8 +7,8 @@ public class BrokerClientMessage {
     public List<BrokerClientSmallerMessage> messages = new ArrayList<>();
 
     public static class BrokerClientSmallerMessage extends BaseMessage {
-        public int clientId;
-        public int partitionId;
+        public Integer clientId;
+        public Integer partitionId;
 
         public BrokerClientSmallerMessage(int clientId, int partitionId, String data, MessageType messageType) {
             this.clientId = clientId;

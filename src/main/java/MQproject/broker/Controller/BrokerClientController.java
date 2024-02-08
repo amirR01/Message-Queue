@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/broker-client")
+@RequestMapping("/api/broker-client")
 public class BrokerClientController {
     @Autowired
     private BrokerService brokerService;

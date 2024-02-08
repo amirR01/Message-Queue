@@ -1,8 +1,10 @@
 package MQproject.broker.Implementation;
 
+import MQproject.broker.Caller.ServerCaller;
 import MQproject.broker.Interface.BrokerService;
 import MQproject.broker.Interface.DataManager;
 import MQproject.broker.model.message.BrokerClientMessage;
+import MQproject.broker.model.message.BrokerServerMessageAboutBrokers;
 import MQproject.broker.model.message.BrokerServerMessageAboutPartitions;
 import MQproject.broker.model.message.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,12 +18,13 @@ public class BrokerServiceImpl implements BrokerService {
 
     @Autowired
     public DataManager dataManager;
-
+    @Autowired
+    public ServerCaller serverCaller;
     public Integer myBrokerId;
-    @Value("${MQproject.broker.server.address}")
-    public String serverIp;
-    @Value("${MQproject.broker.server.port}")
-    public Integer serverPort;
+    @Value("${MQproject.broker.my.address}")
+    public String myIp;
+    @Value("${MQproject.broker.my.port}")
+    public Integer myPort;
 
     public HashMap<Integer, List<Integer>> producersPartitions = new HashMap<>();
     public HashMap<Integer, List<Integer>> consumersPartitions = new HashMap<>();
@@ -75,11 +78,19 @@ public class BrokerServiceImpl implements BrokerService {
     }
 
     private void registerToServer() {
-        // TODO(): handle getting self ip and port from network handler
+        BrokerServerMessageAboutBrokers bigMessage = new BrokerServerMessageAboutBrokers();
+        bigMessage.messages.add(
+                new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(
+                        null,myIp,myPort,MessageType.REGISTER_BROKER
+                )
+        );
+        BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers response =
+                serverCaller.registerToServer(bigMessage).messages.get(0);
+        myBrokerId = response.brokerId;
     }
 
     public void handleNewInformationAboutPartitions(BrokerServerMessageAboutPartitions message) {
-        for (BrokerServerMessageAboutPartitions.BrokerServerSmallerMessage smallerMessage : message.messages) {
+        for (BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.ADD_PARTITION) {
                 dataManager.addPartition(
                         smallerMessage.partitionId, smallerMessage.leaderBrokerId,
@@ -91,8 +102,6 @@ public class BrokerServiceImpl implements BrokerService {
             }
         }
     }
-
-
 
 
     public void stopBroker() {
