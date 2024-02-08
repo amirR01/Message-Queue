@@ -25,7 +25,7 @@ public class ServerBrokerController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/register-broker")
+    @PostMapping(value = "/register-broker", consumes = "application/json")
     public ResponseEntity<BrokerServerMessageAboutBrokers> registerBroker(@RequestBody BrokerServerMessageAboutBrokers message) {
         BrokerServerMessageAboutBrokers response = serverService.registerBroker(message);
         return ResponseEntity.ok(response);
