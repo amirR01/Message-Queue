@@ -1,6 +1,7 @@
 package MQproject.client.Implementation;
 
 import MQproject.client.Interface.CommandLineInterface;
+import MQproject.client.model.message.BrokerClientMessage;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -66,7 +67,7 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
     public void handleCommands(LinkedList<String> command) {
         switch (command.getFirst()) {
             case "produce":
-                producer.produceMessage(command.get(1));
+                producer.produceMessage(new BrokerClientMessage());
                 break;
             case "consume":
                 consumer.consumeMessage();

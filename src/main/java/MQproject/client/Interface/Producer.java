@@ -1,5 +1,7 @@
 package MQproject.client.Interface;
 
+import MQproject.client.model.message.BrokerClientMessage;
+
 import java.net.UnknownHostException;
 
 public interface Producer {
@@ -7,11 +9,13 @@ public interface Producer {
 
     void stopProducer();
 
-    void produceMessage(String message);
+    void produceMessage(BrokerClientMessage message);
 
     void listenForChangesFromServer();
 
-    void connectToServer(Object server) throws UnknownHostException;
+    void connectToServer();
 
     void disconnectFromServer();
+
+
 }

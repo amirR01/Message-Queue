@@ -1,7 +1,8 @@
 package MQproject.client.model.message;
 
 public enum MessageType {
-    REGISTER_BROKER,
+    REGISTER_PRODUCER,
+    REGISTER_CONSUMER,
     PRODUCE_MESSAGE,
     CONSUME_MESSAGE,
     REMOVE_BROKER,

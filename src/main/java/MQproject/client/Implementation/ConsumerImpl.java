@@ -1,10 +1,13 @@
 package MQproject.client.Implementation;
 
+import MQproject.client.Caller.ServerCaller;
 import MQproject.client.Interface.CommandLineInterface;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.model.message.BrokerClientMessage;
+import MQproject.client.model.message.ClientServerMessageAboutConsumers;
 import MQproject.client.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,15 +20,19 @@ public class ConsumerImpl implements Consumer {
     }
 
     @Autowired
+    public ServerCaller serverCaller;
+
+    @Autowired
     public CommandLineInterface commandLineInterface;
-    private Object brokerIP;
+
     private final RestTemplate restTemplate;
     private HashMap<String, Tuple<String, Integer>> addressMap;
 
-    private String brokerAddress = "127.0.0.1";
-    private String brokerPort = "8080";
-
-    private Integer clientId = 0;
+    public Integer myConsumerID;
+    @Value("${MQproject.client.my.address}")
+    public String myIp;
+    @Value("${MQproject.client.my.port}")
+    public Integer myPort;
 
 
     public void subscribeToServer(Object server, Object partition) {
@@ -36,14 +43,14 @@ public class ConsumerImpl implements Consumer {
     }
 
     public void consumeMessage() {
-        // Use the broker IP to pull a message from the server
+        // Use the consumer IP to pull a message from the server
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
-                        clientId, null, null, MessageType.CONSUME_MESSAGE));
+                        myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
-                "http://" + this.brokerAddress + ":" + this.brokerPort + "/api/broker-client/consume-message",
+                "http://" + this.myIp + ":" + this.myPort + "/api/broker-client/consume-message",
                 bigMessage,
                 BrokerClientMessage.class
         );
@@ -52,12 +59,15 @@ public class ConsumerImpl implements Consumer {
             commandLineInterface.printMessage(msg.data);
         }
 
-
     }
 
     @Override
     public void runConsumer() {
+        connectToServer();
+        // register yourself to the server
+        registerToServer();
 
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -96,4 +106,23 @@ public class ConsumerImpl implements Consumer {
             // TODO: add approperiate exception
         }
     }
+
+    @Override
+    public void connectToServer() {
+
+    }
+
+
+    private void registerToServer() {
+        ClientServerMessageAboutConsumers bigMessage = new ClientServerMessageAboutConsumers();
+        bigMessage.messages.add(
+                new ClientServerMessageAboutConsumers.ClientServerSmallerMessageAboutConsumers(
+                        null, myIp, myPort, MessageType.REGISTER_CONSUMER
+                )
+        );
+        ClientServerMessageAboutConsumers.ClientServerSmallerMessageAboutConsumers response =
+                serverCaller.registerToServer(bigMessage).messages.get(0);
+        myConsumerID = response.consumerId;
+    }
+
 }
