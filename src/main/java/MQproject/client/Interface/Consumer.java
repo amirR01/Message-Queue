@@ -16,4 +16,6 @@ public interface Consumer {
 
     public void push(Object server);
 
+    public void connectToServer();
+
 }
