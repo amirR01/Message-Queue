@@ -8,11 +8,10 @@ public interface Consumer {
 
     public void stopConsumer();
 
-    public void subscribe(String key);
+    public void subscribe();
 
-    public void unsubscribe();
 
-    public void pull(String key);
+    public void pull();
 
     public void connectToServer();
 

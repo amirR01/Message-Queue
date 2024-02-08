@@ -46,7 +46,7 @@ public class ProducerImpl implements Producer {
                     new BrokerClientMessage.BrokerClientSmallerMessage(
                             myProducerID, addressMap.get(key).getFirst(), message, MessageType.ADD_MESSAGE));
             // send the message to the broker
-            // serverCaller.produceMessage(bigMessage, addressMap.get(key).x, addressMap.get(key).y);
+
         }
         else{
 

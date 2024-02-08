@@ -1,7 +1,7 @@
 package MQproject.client.Implementation;
 
 import MQproject.client.Caller.ServerCaller;
-import MQproject.client.Interface.CommandLineInterface;
+import MQproject.client.Interface.CommandLineInterfaceOut;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.model.message.BrokerClientMessage;
 import MQproject.client.model.message.ClientServerMessage;
@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.concurrent.CompletableFuture;
 
 public class ConsumerImpl implements Consumer {
     @Autowired
@@ -24,10 +25,12 @@ public class ConsumerImpl implements Consumer {
     public ServerCaller serverCaller;
 
     @Autowired
-    public CommandLineInterface commandLineInterface;
+    public CommandLineInterfaceOut commandLineInterface;
 
     private final RestTemplate restTemplate;
-    private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap;
+    private HashMap<Integer, Tuple<String, Tuple<String, Integer>>> addressMap;
+
+
 
     public Integer myConsumerID;
     @Value("${MQproject.client.my.address}")
@@ -35,36 +38,40 @@ public class ConsumerImpl implements Consumer {
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
 
-    public void getBrokerAddress(String key) {
+    public void getBrokerAddress() {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
         bigMessage.messages.add(
                 new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, key, null, null, null,  MessageType.ASSIGN_BROKER)
+                        myConsumerID, null, null, null,  null,MessageType.ASSIGN_BROKER)
         );
-        ConsumerServerMessage.ConsumerServerSmallerMessage response =
-                serverCaller.assignBroker(bigMessage).messages.get(0);
-        addressMap.put(key, new Tuple<>(response.brokerId,
-                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
+        ConsumerServerMessage responses =
+                serverCaller.assignBroker(bigMessage);
+        for (ConsumerServerMessage.ConsumerServerSmallerMessage response : responses.messages) {
+            addressMap.put(response.brokerId, new Tuple<>(response.key, new Tuple<>(response.brokerIp, response.brokerPort)));
+        }
     }
 
-    public void consumeMessage(String key) {
+    public void consumeMessage() {
         // Use the consumer IP to pull a message from the server
+        Integer brokerId = addressMap.keySet().iterator().next();
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
                         myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
-                "http://" + this.addressMap.get(key).getSecond().getSecond().getSecond() + ":"
-                        + this.addressMap.get(key).getSecond().getSecond().getFirst()
+                "http://" + addressMap.get(brokerId).getFirst() + ":"
+                        + addressMap.get(brokerId).getSecond()
                         + "/api/broker-client/consume-message",
                 bigMessage,
                 BrokerClientMessage.class
         );
         BrokerClientMessage responseBody = response.getBody();
-        for (BrokerClientMessage.BrokerClientSmallerMessage msg : responseBody.messages) {
-            commandLineInterface.printMessage(msg.data);
-        }
+
+        // ASYNC function call on response body
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            commandLineInterface.printMessage(responseBody.messages);
+        });
 
     }
 
@@ -79,35 +86,28 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public void stopConsumer() {
-
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public void subscribe(String key) {
-        getBrokerAddress(key);
+    public void subscribe() {
+        getBrokerAddress();
         int i = 0;
         while (true) {
             i = i + 1;
-            consumeMessage(key);
+            consumeMessage();
             if (i == 10) {
-                getBrokerAddress(key);
+                getBrokerAddress();
                 i = 0;
             }
         }
-
     }
 
     @Override
-    public void unsubscribe() {
-
+    public void pull() {
+        getBrokerAddress();
+        consumeMessage();
     }
-
-    @Override
-    public void pull(String key) {
-        getBrokerAddress(key);
-        consumeMessage(key);
-    }
-
 
     @Override
     public void connectToServer() {
