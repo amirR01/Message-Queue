@@ -1,4 +1,4 @@
-package MQproject.server.model.message;
+package MQproject.server.Model.message;
 
 import java.util.ArrayList;
 import java.util.List;

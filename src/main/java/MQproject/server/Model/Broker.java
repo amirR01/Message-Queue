@@ -1,4 +1,4 @@
-package MQproject.server.model;
+package MQproject.server.Model;
 
 public class Broker {
     private String ip;

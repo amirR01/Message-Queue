@@ -1,13 +1,9 @@
 package MQproject.server.Interface;
 
-import java.util.*;
-
-import MQproject.server.Controller.ServerProducerController;
-import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
-import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.model.message.ServerConsumerMessage;
-import MQproject.server.model.message.ServerProducerMessage;
-import MQproject.server.model.message.BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers;
+import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
+import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
+import MQproject.server.Model.message.ServerConsumerMessage;
+import MQproject.server.Model.message.ServerProducerMessage;
 
 
 public interface ServerService {
