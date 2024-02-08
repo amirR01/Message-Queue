@@ -25,5 +25,6 @@ public enum MessageType {
     GET_METRICS,
     RESET_METRICS,
     RUN_MONITORING,
-    STOP_MONITORING
+    STOP_MONITORING,
+    REGISTER_BROKER,
 }

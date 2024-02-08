@@ -46,6 +46,8 @@ public class ProducerImpl implements Producer {
 
     @Override
     public void produceMessage(BrokerClientMessage message) {
+        // send the message to server using clientservermessageaboutconsumers
+
 
     }
 
@@ -62,8 +64,6 @@ public class ProducerImpl implements Producer {
 
     @Override
     public void disconnectFromServer() {
-        //this.server = null;
-        // Add your logic to disconnect from the server here
     }
 
     private void registerToServer() {
