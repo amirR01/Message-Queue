@@ -1,5 +1,8 @@
 package MQproject.client.Interface;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public interface Consumer {
     public void runConsumer();
 
