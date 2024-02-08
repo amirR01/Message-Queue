@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.ServerConsumerMessage;
+import MQproject.server.Model.message.ConsumerServerMessage;
 
 @RestController
 @RequestMapping("/api/server-consumer")
@@ -17,8 +17,9 @@ public class ServerConsumerController {
     private ServerService serverService;
 
     @PostMapping(value = "/subscribe", consumes = "application/json")
-    public ResponseEntity<Object> handleSubscription(@RequestBody ServerConsumerMessage message) {
+    public ResponseEntity<Object> subscribe(@RequestBody ConsumerServerMessage message) {
         try {
+            ConsumerServerMessage responseMessage = serverService.subscribe(message);
             // load balance and choose some partitions and its holders brokers and return it to the consumer
             // TODO: inform about new consumer update brokers data about consumers.
 
@@ -31,6 +32,4 @@ public class ServerConsumerController {
         // not reachable
         return null;
     }
-
-
 }

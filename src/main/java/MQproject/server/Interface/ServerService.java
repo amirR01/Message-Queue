@@ -1,5 +1,10 @@
 package MQproject.server.Interface;
 
+
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
+import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
+import MQproject.server.model.message.ConsumerServerMessage;
+import MQproject.server.model.message.ProducerServerMessage;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
 import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.Model.message.ServerConsumerMessage;
@@ -27,11 +32,15 @@ public interface ServerService {
 
     public void respondProducer(int producerPortNumber);
 
-    public ServerProducerMessage handleProduction(ServerProducerMessage message);
+    public ProducerServerMessage produce(ProducerServerMessage message);
 
-    public ServerConsumerMessage handleSubscription(ServerConsumerMessage message);
+    public ConsumerServerMessage subscribe(ConsumerServerMessage message);
 
     public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message);
 
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message);
+
+    public BrokerServerMessageAboutBrokers listAllBrokers();
+
+    public ConsumerServerMessage informBroker(ConsumerServerMessage message);
 }

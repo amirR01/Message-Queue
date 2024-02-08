@@ -4,15 +4,19 @@ import java.net.*;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties.Producer;
 import org.springframework.stereotype.Service;
 
+import MQproject.server.Controller.ServerProducerController;
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers;
 import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.Model.message.MessageType;
-import MQproject.server.Model.message.ServerConsumerMessage;
-import MQproject.server.Model.message.ServerProducerMessage;
+import MQproject.server.Model.message.ProducerServerMessage;
+import MQproject.server.model.message.ConsumerServerMessage;
+import MQproject.server.Model.message.ProducerServerMessage;
 
 import java.io.*;
 @Service
@@ -26,7 +30,6 @@ public class ServerImplementation implements ServerService{
     private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
     private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
     private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
-    private ArrayList<Broker> brokers = new ArrayList<>();
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
     private Set<Integer> generatedTokens = new HashSet<>();
     private Random random = new Random();
@@ -118,20 +121,7 @@ public class ServerImplementation implements ServerService{
         // TODO: Return that brokerKeys to producer.
     }
 
-    @Override
-    public ServerConsumerMessage handleSubscription(ServerConsumerMessage message) {
-        // throw new UnsupportedOperationException("Unimplemented method 'respondSubscription'");
 
-        ArrayList<String> broker_ips = new ArrayList<>();
-
-        for (int broker = 0; broker < brokersNumber; broker++) {
-            String nextBroker = consumerLoadBalancer.getNextBroker();
-            broker_ips.add(nextBroker);
-        }
-
-        // return broker_ips;
-        return null;
-    }
 
     @Override
     public int getClientPortNumber() {
@@ -148,14 +138,47 @@ public class ServerImplementation implements ServerService{
     }
 
 
-
     @Override
-    public ServerProducerMessage handleProduction(ServerProducerMessage message) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleProduction'");
+    public ConsumerServerMessage informBroker(ConsumerServerMessage message) {
+        return message;
     }
 
 
+    @Override
+    public ConsumerServerMessage subscribe(ConsumerServerMessage message) {
+        for (ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
+                // TODO: add a better Load Balancer
+                Broker toAssignBroker = producerLoadBalancer.getNextBroker();
+                smallerMessage.brokerId = toAssignBroker.getId();
+                smallerMessage.brokerPort = toAssignBroker.getPort();
+                smallerMessage.brokerIp = toAssignBroker.getIp();
+
+            }
+        }
+        // TODO: inform broker that a new subscriber added.
+        informBroker(message);
+        return message;
+    }
+
+
+
+
+    @Override
+    public ProducerServerMessage produce(ProducerServerMessage message) {
+        for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
+                // TODO: add a better Load Balancer
+                Broker toAssignedBroker = producerLoadBalancer.getNextBroker();
+                smallerMessage.brokerId = toAssignedBroker.getId();
+                smallerMessage.brokerPort = toAssignedBroker.getPort();
+                smallerMessage.brokerIp = toAssignedBroker.getIp();
+                // TODO: put approperiate partition in smallerMessage.PartitionId
+                smallerMessage.PartitionId = null;
+            }
+        }
+        return message;
+    }
 
     @Override
     public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message) {
@@ -176,12 +199,23 @@ public class ServerImplementation implements ServerService{
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_BROKER) {
                 smallerMessage.brokerId = generateToken();
-                brokers.add(new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
-                brokersIds.put(smallerMessage.brokerId, brokers.get(brokers.size() - 1));
+                brokersIds.put(smallerMessage.brokerId, new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
             } else {
                 // nothing
             }
         }
         return message;
     }
+
+    @Override
+    public BrokerServerMessageAboutBrokers listAllBrokers() {
+        BrokerServerMessageAboutBrokers message = new BrokerServerMessageAboutBrokers();
+        for (Broker broker : brokersIds.values()) {
+            message.messages.add(new BrokerServerSmallerMessageAboutBrokers(broker.getId(), broker.getIp(), broker.getPort(), MessageType.LIST_BROKERS));
+        }
+
+        return message;
+    }
+
+
 }
