@@ -27,8 +27,6 @@ public class ProducerImpl implements Producer {
 
     @Override
     public void runProducer() {
-        connectToServer();
-
         registerToServer();
     }
 
@@ -68,21 +66,6 @@ public class ProducerImpl implements Producer {
 
         }
 
-    }
-
-    @Override
-    public void listenForChangesFromServer() {
-
-    }
-
-    @Override
-    public void connectToServer() {
-
-
-    }
-
-    @Override
-    public void disconnectFromServer() {
     }
 
     private void registerToServer() {

@@ -10,9 +10,6 @@ public interface Consumer {
 
     public void subscribe();
 
-
     public void pull();
-
-    public void connectToServer();
 
 }

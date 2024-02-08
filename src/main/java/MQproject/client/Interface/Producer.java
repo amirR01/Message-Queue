@@ -11,12 +11,4 @@ public interface Producer {
     void stopProducer();
 
     void produceMessage(String message, String key);
-
-    void listenForChangesFromServer();
-
-    void connectToServer();
-
-    void disconnectFromServer();
-
-
 }

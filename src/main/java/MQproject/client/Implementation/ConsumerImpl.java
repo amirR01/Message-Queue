@@ -77,11 +77,7 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public void runConsumer() {
-        connectToServer();
-        // register yourself to the server
         registerToServer();
-
-        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -107,10 +103,6 @@ public class ConsumerImpl implements Consumer {
     public void pull() {
         getBrokerAddress();
         consumeMessage();
-    }
-
-    @Override
-    public void connectToServer() {
     }
 
     private void registerToServer() {
