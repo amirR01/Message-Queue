@@ -10,13 +10,15 @@ public class ConsumerServerMessage {
         public Integer brokerId;
         public String brokerIp;
         public Integer brokerPort;
-
-        public ConsumerServerSmallerMessage(Integer ClientId, Integer brokerId, String brokerIp, int brokerPort, MessageType messageType) {
+        
+        public String key;
+        public ConsumerServerSmallerMessage(Integer ClientId, String key, Integer brokerId, String brokerIp, Integer brokerPort, MessageType messageType) {
             this.ClientId = ClientId;
             this.brokerId = brokerId;
             this.brokerIp = brokerIp;
             this.brokerPort = brokerPort;
             this.messageType = messageType;
+            this.key = key;
         }
     }
 }

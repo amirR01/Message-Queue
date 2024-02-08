@@ -5,6 +5,7 @@ import MQproject.client.Interface.CommandLineInterface;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.model.message.BrokerClientMessage;
 import MQproject.client.model.message.ClientServerMessage;
+import MQproject.client.model.message.ConsumerServerMessage;
 import MQproject.client.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,7 +27,7 @@ public class ConsumerImpl implements Consumer {
     public CommandLineInterface commandLineInterface;
 
     private final RestTemplate restTemplate;
-    private HashMap<String, Tuple<String, Integer>> addressMap;
+    private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap;
 
     public Integer myConsumerID;
     @Value("${MQproject.client.my.address}")
@@ -35,14 +36,7 @@ public class ConsumerImpl implements Consumer {
     public Integer myPort;
 
 
-    public void subscribeToServer(Object server, Object partition) {
-        //client.subscribe(partition);
-        // Assume that the broker IP is returned after subscribing
-        //this.brokerIP = client.getServer();
-        //client.commandLineInterface.printInfo("Subscribed to broker " + this.brokerIP + " on partition " + partition);
-    }
-
-    public void consumeMessage() {
+    public void consumeMessage(String key) {
         // Use the consumer IP to pull a message from the server
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
@@ -50,7 +44,9 @@ public class ConsumerImpl implements Consumer {
                         myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
-                "http://" + this.myIp + ":" + this.myPort + "/api/broker-client/consume-message",
+                "http://" + this.addressMap.get(key).getSecond().getSecond().getSecond() + ":"
+                        + this.addressMap.get(key).getSecond().getSecond().getFirst()
+                        + "/api/broker-client/consume-message",
                 bigMessage,
                 BrokerClientMessage.class
         );
@@ -76,36 +72,41 @@ public class ConsumerImpl implements Consumer {
     }
 
     @Override
-    public void subscribe(Object server) {
+    public void subscribe(String key) {
+        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
+        bigMessage.messages.add(
+                new ConsumerServerMessage.ConsumerServerSmallerMessage(
+                        myConsumerID, key, null, null, null,  MessageType.ASSIGN_BROKER)
+        );
+        ConsumerServerMessage.ConsumerServerSmallerMessage response =
+                serverCaller.assignBroker(bigMessage).messages.get(0);
+        addressMap.put(key, new Tuple<>(response.brokerId,
+                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
+
+        // subscribe logic
+    }
+
+    @Override
+    public void unsubscribe() {
 
     }
 
     @Override
-    public void unsubscribe(Object server) {
+    public void pull(String key) {
+        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
+        bigMessage.messages.add(
+                new ConsumerServerMessage.ConsumerServerSmallerMessage(
+                        myConsumerID, key, null, null, null, MessageType.ASSIGN_BROKER)
+        );
+        ConsumerServerMessage.ConsumerServerSmallerMessage response =
+                serverCaller.assignBroker(bigMessage).messages.get(0);
+        addressMap.put(key, new Tuple<>(response.brokerId,
+                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
+
+        consumeMessage(key);
 
     }
 
-    @Override
-    public void pull(Object server) {
-        try {
-            //readNetwork(serverPortNumber, ipAddress);
-        } catch (Exception e) {
-            e.printStackTrace();
-            // TODO: add approperiate exception
-        }
-    }
-
-    @Override
-    public void push(Object server) {
-        try {
-            System.out.println("here");
-            //CommandLineInterfaceImpl.networkHandler.writeNetwork(value, serverPortNumber , ipAddress);
-            System.out.println("after here");
-        } catch (Exception e) {
-            e.printStackTrace();
-            // TODO: add approperiate exception
-        }
-    }
 
     @Override
     public void connectToServer() {

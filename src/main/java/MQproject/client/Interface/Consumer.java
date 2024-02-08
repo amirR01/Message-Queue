@@ -8,13 +8,11 @@ public interface Consumer {
 
     public void stopConsumer();
 
-    public void subscribe(Object server);
+    public void subscribe(String key);
 
-    public void unsubscribe(Object server);
+    public void unsubscribe();
 
-    public void pull(Object server);
-
-    public void push(Object server);
+    public void pull(String key);
 
     public void connectToServer();
 

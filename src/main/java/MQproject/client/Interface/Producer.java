@@ -10,7 +10,7 @@ public interface Producer {
 
     void stopProducer();
 
-    void produceMessage(BrokerClientMessage message);
+    void produceMessage(String message, String key);
 
     void listenForChangesFromServer();
 

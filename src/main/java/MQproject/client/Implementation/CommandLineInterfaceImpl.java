@@ -64,7 +64,7 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
     public void handleCommands(LinkedList<String> command) {
         switch (command.getFirst()) {
             case "produce":
-                producer.produceMessage(new BrokerClientMessage());
+                producer.produceMessage(command.getFirst(), command.get(1));
                 break;
             case "consume":
                 consumer.consumeMessage();
