@@ -1,4 +1,4 @@
-package MQproject.server.model.message;
+package MQproject.server.Model.message;
 
 public enum MessageType {
     REGISTER_BROKER,
