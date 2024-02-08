@@ -35,6 +35,17 @@ public class ConsumerImpl implements Consumer {
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
 
+    public void getBrokerAddress(String key) {
+        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
+        bigMessage.messages.add(
+                new ConsumerServerMessage.ConsumerServerSmallerMessage(
+                        myConsumerID, key, null, null, null,  MessageType.ASSIGN_BROKER)
+        );
+        ConsumerServerMessage.ConsumerServerSmallerMessage response =
+                serverCaller.assignBroker(bigMessage).messages.get(0);
+        addressMap.put(key, new Tuple<>(response.brokerId,
+                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
+    }
 
     public void consumeMessage(String key) {
         // Use the consumer IP to pull a message from the server
@@ -73,17 +84,17 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public void subscribe(String key) {
-        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
-        bigMessage.messages.add(
-                new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, key, null, null, null,  MessageType.ASSIGN_BROKER)
-        );
-        ConsumerServerMessage.ConsumerServerSmallerMessage response =
-                serverCaller.assignBroker(bigMessage).messages.get(0);
-        addressMap.put(key, new Tuple<>(response.brokerId,
-                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
+        getBrokerAddress(key);
+        int i = 0;
+        while (true) {
+            i = i + 1;
+            consumeMessage(key);
+            if (i == 10) {
+                getBrokerAddress(key);
+                i = 0;
+            }
+        }
 
-        // subscribe logic
     }
 
     @Override
@@ -93,26 +104,14 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public void pull(String key) {
-        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
-        bigMessage.messages.add(
-                new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, key, null, null, null, MessageType.ASSIGN_BROKER)
-        );
-        ConsumerServerMessage.ConsumerServerSmallerMessage response =
-                serverCaller.assignBroker(bigMessage).messages.get(0);
-        addressMap.put(key, new Tuple<>(response.brokerId,
-                new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
-
+        getBrokerAddress(key);
         consumeMessage(key);
-
     }
 
 
     @Override
     public void connectToServer() {
-
     }
-
 
     private void registerToServer() {
         ClientServerMessage bigMessage = new ClientServerMessage();

@@ -1,20 +1,20 @@
 package MQproject.client.Implementation;
 
 import MQproject.client.Interface.CommandLineInterface;
-import MQproject.client.model.message.BrokerClientMessage;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
 
 
 public class CommandLineInterfaceImpl implements CommandLineInterface {
-    private final ProducerImpl producer;
-    private final ConsumerImpl consumer;
 
-    public CommandLineInterfaceImpl(ProducerImpl producer, ConsumerImpl consumer) {
-        this.producer = producer;
-        this.consumer = consumer;
+    public LinkedList<String> consumedMessages = new LinkedList<>();
+
+    public LinkedList<Tuple<String, String>> produceMessages = new LinkedList<>();
+
+    public CommandLineInterfaceImpl(LinkedList<String> consumedMessages, LinkedList<String> produceMessages) {
+        this.consumedMessages = new LinkedList<>();
+        this.produceMessages = new LinkedList<>();
     }
 
     @Override
@@ -64,10 +64,10 @@ public class CommandLineInterfaceImpl implements CommandLineInterface {
     public void handleCommands(LinkedList<String> command) {
         switch (command.getFirst()) {
             case "produce":
-                producer.produceMessage(command.getFirst(), command.get(1));
+                produceMessages.add(new Tuple<>(command.getFirst(), command.get(1)));
                 break;
             case "consume":
-                consumer.consumeMessage();
+                consumedMessages.add(command.getLast());
                 break;
             default:
                 printError("Invalid command");
