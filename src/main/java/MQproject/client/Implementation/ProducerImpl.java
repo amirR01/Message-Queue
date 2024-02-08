@@ -8,6 +8,8 @@ import MQproject.client.model.message.MessageType;
 import MQproject.client.model.message.ProducerServerMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestOperations;
 
 import java.util.HashMap;
 
@@ -17,13 +19,15 @@ public class ProducerImpl implements Producer {
     public ServerCaller serverCaller;
 
     private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap;
-
+    // first: key, second: partition ID, third: brokerID, fourth: brokerIP, fifth: port
     public Integer myProducerID;
 
     @Value("${MQproject.client.my.address}")
     public String myIp;
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
+
+    private RestOperations restTemplate;
 
     @Override
     public void runProducer() {
@@ -37,17 +41,7 @@ public class ProducerImpl implements Producer {
 
     @Override
     public void produceMessage(String message, String key) {
-        if (addressMap.containsKey(key)){
-            // send the message using broker client message and address map
-            BrokerClientMessage bigMessage = new BrokerClientMessage();
-            bigMessage.messages.add(
-                    new BrokerClientMessage.BrokerClientSmallerMessage(
-                            myProducerID, addressMap.get(key).getFirst(), message, MessageType.ADD_MESSAGE));
-            // send the message to the broker
-
-        }
-        else{
-
+        if (!addressMap.containsKey(key)){
             ProducerServerMessage bigMessage =
                     new ProducerServerMessage();
 
@@ -61,11 +55,21 @@ public class ProducerImpl implements Producer {
 
             addressMap.put(key, new Tuple<>(response.PartitionId,
                     new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
-            // send the message to the partition
-            // serverCaller.produceMessage(bigMessage, response.brokerIp, response.brokerPort);
-
         }
 
+        BrokerClientMessage bigMessage = new BrokerClientMessage();
+        bigMessage.messages.add(
+                new BrokerClientMessage.BrokerClientSmallerMessage(
+                        myProducerID, null, null, MessageType.PRODUCE_MESSAGE));
+
+
+        ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
+                "http://" + addressMap.get(key).getSecond().getSecond().getFirst() + ":"
+                        + addressMap.get(key).getSecond().getSecond().getSecond()
+                        + "/api/broker-client/consume-message",
+                bigMessage,
+                BrokerClientMessage.class
+        );
     }
 
     private void registerToServer() {

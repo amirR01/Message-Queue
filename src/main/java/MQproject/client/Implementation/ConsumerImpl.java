@@ -51,9 +51,20 @@ public class ConsumerImpl implements Consumer {
         }
     }
 
-    public void consumeMessage() {
+    public void getBrokerAddressPull() {
+        ConsumerServerMessage bigMessage = new ConsumerServerMessage();
+        bigMessage.messages.add(
+                new ConsumerServerMessage.ConsumerServerSmallerMessage(
+                        myConsumerID, null, null, null,  null,MessageType.PULL_BROKER)
+        );
+        ConsumerServerMessage.ConsumerServerSmallerMessage response =
+                serverCaller.assignBroker(bigMessage).messages.get(0);
+        addressMap.put(response.brokerId, new Tuple<>(response.key, new Tuple<>(response.brokerIp, response.brokerPort)));
+        consumeMessage(response.brokerId);
+    }
+
+    public void consumeMessage(Integer brokerId) {
         // Use the consumer IP to pull a message from the server
-        Integer brokerId = addressMap.keySet().iterator().next();
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
@@ -91,7 +102,9 @@ public class ConsumerImpl implements Consumer {
         int i = 0;
         while (true) {
             i = i + 1;
-            consumeMessage();
+            if (!addressMap.keySet().isEmpty()){
+                consumeMessage(addressMap.keySet().iterator().next());
+            }
             if (i == 10) {
                 getBrokerAddress();
                 i = 0;
@@ -101,8 +114,7 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public void pull() {
-        getBrokerAddress();
-        consumeMessage();
+        getBrokerAddressPull();
     }
 
     private void registerToServer() {

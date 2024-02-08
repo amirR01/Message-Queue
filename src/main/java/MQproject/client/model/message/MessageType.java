@@ -7,6 +7,7 @@ public enum MessageType {
     GET_PARTITION,
     CONSUME_MESSAGE,
     ASSIGN_BROKER,
+    PULL_BROKER,
     REMOVE_BROKER,
     ADD_REPLICA,
     REMOVE_REPLICA,
