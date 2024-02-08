@@ -7,8 +7,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import MQproject.server.Interface.ServerService;
 import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
+
 
 @RestController
 @RequestMapping("/api/server")
@@ -20,5 +23,11 @@ public class ServerBrokerController {
     public ResponseEntity<Object> addPartition(@RequestBody BrokerServerMessageAboutPartitions message) {
         serverService.handleNewPartitions(message);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/register-broker")
+    public ResponseEntity<BrokerServerMessageAboutBrokers> registerBroker(@RequestBody BrokerServerMessageAboutBrokers message) {
+        BrokerServerMessageAboutBrokers response = serverService.registerBroker(message);
+        return ResponseEntity.ok(response);
     }
 }

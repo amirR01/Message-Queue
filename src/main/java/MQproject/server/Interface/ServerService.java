@@ -3,9 +3,11 @@ package MQproject.server.Interface;
 import java.util.*;
 
 import MQproject.server.Controller.ServerProducerController;
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
 import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.model.message.ServerConsumerMessage;
 import MQproject.server.model.message.ServerProducerMessage;
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers;
 
 
 public interface ServerService {
@@ -35,4 +37,5 @@ public interface ServerService {
 
     public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message);
 
+    public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message);
 }

@@ -8,7 +8,10 @@ import org.springframework.stereotype.Service;
 import org.testcontainers.shaded.org.apache.commons.lang3.ObjectUtils.Null;
 
 import MQproject.server.Interface.ServerService;
+import MQproject.server.model.Broker;
+import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
 import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
+import MQproject.server.model.message.MessageType;
 import MQproject.server.model.message.ServerConsumerMessage;
 import MQproject.server.model.message.ServerProducerMessage;
 
@@ -24,6 +27,11 @@ public class ServerImplementation implements ServerService{
     private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
     private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
     private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
+    private ArrayList<Broker> brokers = new ArrayList<>();
+    private HashMap<Integer, Broker> brokersIds = new HashMap<>();
+    private Set<Integer> generatedTokens = new HashSet<>();
+    private Random random = new Random();
+
     
 
     public ServerImplementation() {
@@ -153,5 +161,27 @@ public class ServerImplementation implements ServerService{
     public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'handleNewPartitions'");
+    }
+
+    public int generateToken() {
+        int token;
+        do {
+            token = random.nextInt(Integer.MAX_VALUE);
+        } while (!generatedTokens.add(token)); // Ensure token is unique
+        return token;
+    }
+
+    @Override
+    public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message) {
+        for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
+            if (smallerMessage.messageType == MessageType.REGISTER_BROKER) {
+                smallerMessage.brokerId = generateToken();
+                brokers.add(new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
+                brokersIds.put(smallerMessage.brokerId, brokers.get(brokers.size() - 1));
+            } else {
+                // nothing
+            }
+        }
+        return message;
     }
 }
