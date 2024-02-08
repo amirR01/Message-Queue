@@ -4,7 +4,6 @@ package MQproject.broker.Interface;
 import MQproject.broker.model.dataManagerModels.DataManagementConfig;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface DataManager {
     public void addMessage(String message, int partitionId, Boolean isReplica);
 

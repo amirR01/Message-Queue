@@ -7,15 +7,16 @@ import MQproject.broker.model.message.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+@Service
 public class BrokerServiceImpl implements BrokerService {
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
     @Autowired
     public DataManager dataManager;
     @Autowired
@@ -127,7 +128,7 @@ public class BrokerServiceImpl implements BrokerService {
                 dataManager.addPartition(
                         smallerMessage.partitionId, smallerMessage.leaderBrokerId,
                         smallerMessage.replicaBrokerId,
-                        null, 0, smallerMessage.isReplica
+                        smallerMessage.data, 0, smallerMessage.isReplica
                 );
             } else {
                 // not supported yet
@@ -157,6 +158,7 @@ public class BrokerServiceImpl implements BrokerService {
             }
         }
     }
+
     public void updatePartitionsHeadIndex(BrokerBrokerMessage message) {
         for (BrokerBrokerMessage.BrokerBrokerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType != MessageType.UPDATE_HEAD_INDEX) {

@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/broker-broker")
 public class BrokerBrokerController {
+    private final BrokerService brokerService;
+
     @Autowired
-    private BrokerService brokerService;
+    public BrokerBrokerController(BrokerService brokerService) {
+        this.brokerService = brokerService;
+    }
 
     @PostMapping("/update-replicas-data")
     public ResponseEntity<Object> updateReplicasData(@RequestBody BrokerBrokerMessage message) {

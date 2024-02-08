@@ -8,10 +8,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
 import java.io.*;
 import java.util.HashMap;
 
-
+@Service
 public class DataManagerImpl implements DataManager {
     @Autowired
     private DataManagementConfig config;
@@ -110,6 +112,7 @@ public class DataManagerImpl implements DataManager {
         Partition newPartition = new Partition(partitionId, leaderBrokerId, replicaBrokerId, headIndex, isReplica, partitionsAddress);
         partitions.put(partitionId, newPartition);
         // create a file for the new partition and write the data to it
+        System.out.println(partitionsAddress);
         File file = new File(partitionsAddress);
         // write the data to the file
         try {

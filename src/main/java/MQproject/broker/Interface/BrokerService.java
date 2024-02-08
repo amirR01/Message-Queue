@@ -5,7 +5,6 @@ import MQproject.broker.model.message.BrokerClientMessage;
 import MQproject.broker.model.message.BrokerServerMessageAboutPartitions;
 import org.springframework.stereotype.Service;
 
-@Service
 public interface BrokerService {
 
 
