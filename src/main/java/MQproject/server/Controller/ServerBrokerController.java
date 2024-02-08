@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
-import MQproject.server.model.message.ConsumerServerMessage;
 
 
 @RestController
@@ -38,10 +37,10 @@ public class ServerBrokerController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(value = "/inform-broker", consumes = "application/json")
-    public ResponseEntity<ConsumerServerMessage> informBroker(@RequestBody ConsumerServerMessage message) {
-        ConsumerServerMessage response = serverService.informBroker(message);
-        return ResponseEntity.ok(response);
-    }
+//    @PostMapping(value = "/inform-broker", consumes = "application/json")
+//    public ResponseEntity<ConsumerServerMessage> informBroker(@RequestBody ConsumerServerMessage message) {
+//        ConsumerServerMessage response = serverService.informBroker(message);
+//        return ResponseEntity.ok(response);
+//    }
 
 }

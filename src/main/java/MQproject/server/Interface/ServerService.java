@@ -24,13 +24,7 @@ public interface ServerService {
 
     public void stopServer();
 
-    public void getClientMessage();
-
-    public int getClientPortNumber();
-
-    public void startLoadBalancer(String key, String value);
-
-    public void respondProducer(int producerPortNumber);
+    // public void respondProducer(int producerPortNumber);
 
     public ProducerServerMessage produce(ProducerServerMessage message);
 

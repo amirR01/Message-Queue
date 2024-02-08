@@ -1,13 +1,11 @@
 package MQproject.server.Implementation;
 
-import java.net.*;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties.Producer;
 import org.springframework.stereotype.Service;
 
-import MQproject.server.Controller.ServerProducerController;
+import MQproject.server.Caller.BrokerCaller;
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
@@ -16,20 +14,25 @@ import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.Model.message.MessageType;
 import MQproject.server.Model.message.ProducerServerMessage;
 import MQproject.server.model.message.ConsumerServerMessage;
+import org.springframework.web.client.RestTemplate;
 import MQproject.server.Model.message.ProducerServerMessage;
 
-import java.io.*;
 @Service
 public class ServerImplementation implements ServerService{
 
     @Autowired
     private RoundRobinLoadBalancer producerLoadBalancer;
+    // @Autowired
+    // private RoundRobinLoadBalancer consumerLoadBalancer;
     @Autowired
-    private RoundRobinLoadBalancer consumerLoadBalancer;
+    public BrokerCaller brokerCaller;
 
-    private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
+    // private final RestTemplate restTemplate;
+
+
+    // private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
     private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
-    private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
+    // private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
     private Set<Integer> generatedTokens = new HashSet<>();
     private Random random = new Random();
@@ -37,41 +40,12 @@ public class ServerImplementation implements ServerService{
     private HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions;
     private HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions;
 
-    public ServerImplementation() {
-        // TODO: Get these brokers from server.
-        allBrokers.add("Broker1");
-        allBrokers.add("Broker2");
-        allBrokers.add("Broker3");
-    }
-
-
-
-    public void clientHandler() {
-
-        try {
-            
-            ServerSocket serverSocket = new ServerSocket(getClientPortNumber());
-
-            while (true) {
-                Socket socket = serverSocket.accept();
-                PrintWriter printWriter = new PrintWriter(socket.getOutputStream());
-
-                String message = getMessageToSend(2000);
-                printWriter.println(message);
-                printWriter.close();
-                System.out.println();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public String getMessageToSend(Integer clientPort) {
         // TODO: implement it better!
         String result = "Sallam";
         return result;
     }
+
 
     public static void main(String[] args) {
         ServerImplementation s = new ServerImplementation();
@@ -82,7 +56,6 @@ public class ServerImplementation implements ServerService{
 
     @Override
     public void runServer() {
-        clientHandler();
         // TODO Auto-generated method stub
     }
 
@@ -92,50 +65,49 @@ public class ServerImplementation implements ServerService{
         // throw new UnsupportedOperationException("Unimplemented method 'stopServer'");
     }
 
-    @Override
-    public void getClientMessage() {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'getClientMessage'");
-    }
 
-    @Override
-    public void startLoadBalancer(String key, String value) {
-        // TODO Auto-generated method stub
-        // throw new UnsupportedOperationException("Unimplemented method 'startLoadBalancer'");
-    }
+    // @Override
+    // public void respondProducer(int producerPortNumber) {
+    //     // try {
+    //     //     return portNumber;
+    //     // } catch (Exception e) {
+    //     //     // TODO: handle exception
+    //     // }
 
-    @Override
-    public void respondProducer(int producerPortNumber) {
-        // try {
-        //     return portNumber;
-        // } catch (Exception e) {
-        //     // TODO: handle exception
-        // }
+    //     // assign a random broker to the producer key
+    //     for (int key = 0; key < producerKeys.size(); key++) {
+    //         String nextBroker = producerLoadBalancer.getNextBroker();
+    //         brokerKeys.put(producerKeys.get(key), nextBroker);
+    //     }
 
-        // assign a random broker to the producer key
-        for (int key = 0; key < producerKeys.size(); key++) {
-            String nextBroker = producerLoadBalancer.getNextBroker();
-            brokerKeys.put(producerKeys.get(key), nextBroker);
-        }
-
-        // TODO: Return that brokerKeys to producer.
-    }
+    //     // TODO: Return that brokerKeys to producer.
+    // }
 
 
+    // public void addPartititon(Integer brokerId, Integer partitionId) {
+    //     // Use the consumer IP to pull a message from the server
+    //     BrokerClientMessage bigMessage = new BrokerClientMessage();
+    //     bigMessage.messages.add(
+    //             new BrokerClientMessage.BrokerClientSmallerMessage(
+    //                     myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
 
-    @Override
-    public int getClientPortNumber() {
-        // TODO Auto-generated method stub
-        int result_port_number = 2000;
-        try {
-            return result_port_number;
-        } catch (Exception e) {
-            // TODO: add approperiate exeption
-            e.printStackTrace();
-            return 0;
-        }
-        // throw new UnsupportedOperationException("Unimplemented method 'getClientPortNumber'");
-    }
+    //     ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
+    //             "http://" + addressMap.get(brokerId).getFirst() + ":"
+    //                     + addressMap.get(brokerId).getSecond()
+    //                     + "/api/broker-client/consume-message",
+    //             bigMessage,
+    //             BrokerClientMessage.class
+    //     );
+    //     BrokerClientMessage responseBody = response.getBody();
+
+    //     // ASYNC function call on response body
+    //     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+    //         commandLineInterface.printMessage(responseBody.messages);
+    //     });
+
+    // }
+
+
 
 
     @Override
@@ -162,13 +134,12 @@ public class ServerImplementation implements ServerService{
     }
 
 
-
-
     @Override
     public ProducerServerMessage produce(ProducerServerMessage message) {
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
                 // TODO: add a better Load Balancer
+                // TODO: save the producers id and the partition id in a map
                 Broker toAssignedBroker = producerLoadBalancer.getNextBroker();
                 smallerMessage.brokerId = toAssignedBroker.getId();
                 smallerMessage.brokerPort = toAssignedBroker.getPort();
@@ -177,6 +148,7 @@ public class ServerImplementation implements ServerService{
                 smallerMessage.PartitionId = null;
             }
         }
+        // TODO: inform the brokers
         return message;
     }
 
@@ -216,6 +188,4 @@ public class ServerImplementation implements ServerService{
 
         return message;
     }
-
-
 }
