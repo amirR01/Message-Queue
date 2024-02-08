@@ -5,12 +5,16 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.testcontainers.shaded.org.apache.commons.lang3.ObjectUtils.Null;
 
-import MQproject.server.Interface.Server;
+import MQproject.server.Interface.ServerService;
+import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
+import MQproject.server.model.message.ServerConsumerMessage;
+import MQproject.server.model.message.ServerProducerMessage;
 
 import java.io.*;
 @Service
-public class ServerImplementation implements Server{
+public class ServerImplementation implements ServerService{
 
     @Autowired
     private RoundRobinLoadBalancer producerLoadBalancer;
@@ -107,17 +111,18 @@ public class ServerImplementation implements Server{
     }
 
     @Override
-    public ArrayList<String> respondSubscription() {
+    public ServerConsumerMessage handleSubscription(ServerConsumerMessage message) {
         // throw new UnsupportedOperationException("Unimplemented method 'respondSubscription'");
 
-        ArrayList<String> broker_ips;
+        ArrayList<String> broker_ips = new ArrayList<>();
 
         for (int broker = 0; broker < brokersNumber; broker++) {
             String nextBroker = consumerLoadBalancer.getNextBroker();
             broker_ips.add(nextBroker);
         }
 
-        return broker_ips;
+        // return broker_ips;
+        return null;
     }
 
     @Override
@@ -132,5 +137,21 @@ public class ServerImplementation implements Server{
             return 0;
         }
         // throw new UnsupportedOperationException("Unimplemented method 'getClientPortNumber'");
+    }
+
+
+
+    @Override
+    public ServerProducerMessage handleProduction(ServerProducerMessage message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleProduction'");
+    }
+
+
+
+    @Override
+    public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'handleNewPartitions'");
     }
 }

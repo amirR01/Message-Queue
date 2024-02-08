@@ -1,11 +1,15 @@
 package MQproject.server.model.message;
 
-public class ServerProducerMessage {
-    public List<BrokerClientSmallerMessage> messages = new ArrayList<>();
+import java.util.*;
 
-    public static class BrokerClientSmallerMessage extends BaseMessage {
+public class ServerProducerMessage {
+    public List<ServerProducerMessage> messages = new ArrayList<>();
+
+    public static class ServerProducerSmallerMessage extends BaseMessage {
         public Integer clientId;
         public Integer partitionId;
+        public String data; 
+        public MessageType messageType;
 
         public ServerProducerSmallerMessage(int clientId, int partitionId, String data, MessageType messageType) {
             this.clientId = clientId;
@@ -13,7 +17,5 @@ public class ServerProducerMessage {
             this.data = data;
             this.messageType = messageType;
         }
-
     }
-
 }
