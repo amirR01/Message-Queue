@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.ServerProducerMessage;
+import MQproject.server.Model.message.ProducerServerMessage;
 
 @RestController
 @RequestMapping("/api/server-producer")
@@ -17,10 +17,10 @@ public class ServerProducerController {
     private ServerService serverService;
 
     @PostMapping(value = "/produce", consumes = "application/json")
-    public ResponseEntity<Object> handleProduction(@RequestBody ServerProducerMessage message) {
+    public ResponseEntity<Object> produce(@RequestBody ProducerServerMessage message) {
         // TODO: inform about new produce update brokers data about consumers.
         try {
-            ServerProducerMessage responseMessage = serverService.handleProduction(message);
+            ProducerServerMessage responseMessage = serverService.produce(message);
             return ResponseEntity.ok(responseMessage);
         } catch (Exception e) {
             String errorMessage = e.getMessage();

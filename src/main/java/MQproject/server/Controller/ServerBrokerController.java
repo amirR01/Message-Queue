@@ -19,7 +19,6 @@ public class ServerBrokerController {
     @Autowired
     private ServerService serverService;
 
-<<<<<<< HEAD
     @PostMapping(value = "/add-partition", consumes = "application/json")
     public ResponseEntity<Object> addPartition(@RequestBody BrokerServerMessageAboutPartitions message) {
         serverService.handleNewPartitions(message);
@@ -27,13 +26,21 @@ public class ServerBrokerController {
     }
 
     @PostMapping(value = "/register-broker", consumes = "application/json")
-=======
-    @PostMapping("/register-broker")
->>>>>>> origin/main
     public ResponseEntity<BrokerServerMessageAboutBrokers> registerBroker(@RequestBody BrokerServerMessageAboutBrokers message) {
         BrokerServerMessageAboutBrokers response = serverService.registerBroker(message);
         return ResponseEntity.ok(response);
     }
-//    @PostMapping("/list")
-    // TODO: retrun list of all brokers
+
+    @PostMapping(value = "/list-brokers", consumes = "application/json")
+    public ResponseEntity<BrokerServerMessageAboutBrokers> listAllBrokers() {
+        BrokerServerMessageAboutBrokers response = serverService.listAllBrokers();
+        return ResponseEntity.ok(response);
+    }
+
+//    @PostMapping(value = "/inform-broker", consumes = "application/json")
+//    public ResponseEntity<ConsumerServerMessage> informBroker(@RequestBody ConsumerServerMessage message) {
+//        ConsumerServerMessage response = serverService.informBroker(message);
+//        return ResponseEntity.ok(response);
+//    }
+
 }

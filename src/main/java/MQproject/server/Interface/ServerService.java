@@ -2,9 +2,8 @@ package MQproject.server.Interface;
 
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
 import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.Model.message.ServerConsumerMessage;
-import MQproject.server.Model.message.ServerProducerMessage;
-
+import MQproject.server.Model.message.ConsumerServerMessage;
+import MQproject.server.Model.message.ProducerServerMessage;
 
 public interface ServerService {
 
@@ -19,19 +18,17 @@ public interface ServerService {
 
     public void stopServer();
 
-    public void getClientMessage();
+    // public void respondProducer(int producerPortNumber);
 
-    public int getClientPortNumber();
+    public ProducerServerMessage produce(ProducerServerMessage message);
 
-    public void startLoadBalancer(String key, String value);
-
-    public void respondProducer(int producerPortNumber);
-
-    public ServerProducerMessage handleProduction(ServerProducerMessage message);
-
-    public ServerConsumerMessage handleSubscription(ServerConsumerMessage message);
+    public ConsumerServerMessage subscribe(ConsumerServerMessage message);
 
     public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message);
 
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message);
+
+    public BrokerServerMessageAboutBrokers listAllBrokers();
+
+    public ConsumerServerMessage informBroker(ConsumerServerMessage message);
 }
