@@ -1,8 +1,7 @@
 package MQproject.server.Interface;
 
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
-import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.Model.message.BrokerServerMessageAboutClient;
+import MQproject.server.Model.message.BrokerServerMessageAboutClients;
 import MQproject.server.Model.message.ConsumerServerMessage;
 import MQproject.server.Model.message.ProducerServerMessage;
 
@@ -29,5 +28,5 @@ public interface ServerService {
 
     public BrokerServerMessageAboutBrokers listAllBrokers();
 
-    public void informBroker(Integer brokerId, BrokerServerMessageAboutClient message);
+    public void informBroker(Integer brokerId, BrokerServerMessageAboutClients message);
 }

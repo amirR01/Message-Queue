@@ -4,7 +4,7 @@ import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
 import MQproject.server.Model.Data.Tuple;
 import MQproject.server.Model.message.*;
-import MQproject.server.Model.message.BrokerServerMessageAboutClient.BrokerServerSmallerMessageAboutClient;
+import MQproject.server.Model.message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClient;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -67,8 +67,8 @@ public class ServerImplementation implements ServerService {
         // TODO: can also get ack response from brokers 
     }
 
-    public void movePartitionAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
-
+    public void movePartitionAPI(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId)
+        // leader partition move
         restTemplate.postForEntity(
                 "http://" + brokersIds.get(brokerId).getIp() + ":"
                         + brokersIds.get(brokerId).getPort()
@@ -117,16 +117,16 @@ public class ServerImplementation implements ServerService {
 
 
     @Override
-    public void informBroker(Integer brokerId, BrokerServerMessageAboutClient message) {
-
+    public void informBroker(Integer brokerId, BrokerServerMessageAboutClients message) {
+        Broker broker = brokersIds.get(brokerId);
         restTemplate.postForEntity(
-            "http://" + brokersIds.get(brokerId).getIp() + ":"
-                    + brokersIds.get(brokerId).getPort()
+            "http://" + broker.getIp() + ":"
+                    + broker.getPort()
                     + "/api/broker-server/become-leader",
-                    message, 
+                    message,
                     BrokerServerMessageAboutBrokers.class
     );
-    // TODO: can also get ack response from brokers 
+        // TODO: can also get ack response from brokers
     }
 
 
@@ -143,7 +143,7 @@ public class ServerImplementation implements ServerService {
                 smallerMessage.partitionId = null;
 
                 // Inform brokers that a new subscriber added
-                BrokerServerMessageAboutClient brokerMessage = new BrokerServerMessageAboutClient();
+                BrokerServerMessageAboutClients brokerMessage = new BrokerServerMessageAboutClients();
                 brokerMessage.messages.add(
                     new BrokerServerSmallerMessageAboutClient(
                         smallerMessage.partitionId, smallerMessage.brokerId, smallerMessage.ClientId, MessageType.INFORM_BROKER_ABOUT_SUBSCRIBER));
@@ -170,7 +170,7 @@ public class ServerImplementation implements ServerService {
                 smallerMessage.PartitionId = null;
 
                 // Inform brokers that a new producer added
-                BrokerServerMessageAboutClient brokerMessage = new BrokerServerMessageAboutClient();
+                BrokerServerMessageAboutClients brokerMessage = new BrokerServerMessageAboutClients();
                 brokerMessage.messages.add(
                     new BrokerServerSmallerMessageAboutClient(
                         smallerMessage.PartitionId, smallerMessage.brokerId, smallerMessage.ClientId, MessageType.INFORM_BROKER_ABOUT_PRODUCER));
