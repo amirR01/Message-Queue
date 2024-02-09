@@ -56,7 +56,7 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
                     int swapIndex = ThreadLocalRandom.current().nextInt(mostLoadedConsumerPartitions.size());
                     int swappedPartition = mostLoadedConsumerPartitions.get(swapIndex);
                     partitions.add(swappedPartition);
-                    mostLoadedConsumerPartitions.set(swapIndex, deadPartitionId);
+                    mostLoadedConsumerPartitions.remove(swapIndex);
                 }
                 break;
             }
