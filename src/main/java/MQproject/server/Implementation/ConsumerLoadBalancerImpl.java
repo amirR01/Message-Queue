@@ -10,49 +10,46 @@ import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
-    @Override
-    public void balanceOnDeath(HashMap<Integer, ArrayList<Integer>> consumerPartitions, Integer deadConsumerId) {
+    public void balanceOnConsumerDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadConsumerId) {
         // Remove partitions of dead consumer
-        ArrayList<Integer> partitionsToRemove = consumerPartitions.get(deadConsumerId);
-        consumerPartitions.remove(deadConsumerId);
+        ArrayList<Integer> partitionsToRemove = consumerIdToPartitions.get(deadConsumerId);
+        consumerIdToPartitions.remove(deadConsumerId);
 
         // Find consumer with the least partitions
-        int leastLoadedConsumerId = getLeastLoadedConsumer(consumerPartitions);
+        int leastLoadedConsumerId = getLeastLoadedConsumer(consumerIdToPartitions);
 
         // Add partitions of dead consumer to least loaded consumer
-        ArrayList<Integer> leastLoadedConsumerPartitions = consumerPartitions.get(leastLoadedConsumerId);
+        ArrayList<Integer> leastLoadedConsumerPartitions = consumerIdToPartitions.get(leastLoadedConsumerId);
         leastLoadedConsumerPartitions.addAll(partitionsToRemove);
     }
 
-    @Override
-    public void balanceOnBirth(HashMap<Integer, ArrayList<Integer>> consumerPartitions, Integer bornConsumerId) {
+    public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornConsumerId) {
         // Find consumer with most partitions
-        int mostLoadedConsumerId = getMostLoadedConsumer(consumerPartitions);
+        int mostLoadedConsumerId = getMostLoadedConsumer(consumerIdToPartitions);
 
         // Divide partitions of busiest consumer in half
         ArrayList<Integer> partitionsToMove = new ArrayList<>();
-        ArrayList<Integer> mostLoadedConsumerPartitions = consumerPartitions.get(mostLoadedConsumerId);
+        ArrayList<Integer> mostLoadedConsumerPartitions = consumerIdToPartitions.get(mostLoadedConsumerId);
         int numPartitionsToMove = mostLoadedConsumerPartitions.size() / 2;
         for (int i = 0; i < numPartitionsToMove; i++) {
             partitionsToMove.add(mostLoadedConsumerPartitions.remove(0));
         }
 
         // Assign partitions to the new consumer
-        consumerPartitions.put(bornConsumerId, partitionsToMove);
+        consumerIdToPartitions.put(bornConsumerId, partitionsToMove);
     }
-    @Override
-    public void balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> consumerPartitions, Integer deadPartitionId) {
+    public void balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadPartitionId) {
         // Find consumer with most partitions
-        int mostLoadedConsumerId = getMostLoadedConsumer(consumerPartitions);
+        int mostLoadedConsumerId = getMostLoadedConsumer(consumerIdToPartitions);
 
         // Remove dead partition from its consumer
-        for (Map.Entry<Integer, ArrayList<Integer>> entry : consumerPartitions.entrySet()) {
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : consumerIdToPartitions.entrySet()) {
             ArrayList<Integer> partitions = entry.getValue();
             if (partitions.contains(deadPartitionId)) {
                 partitions.remove(deadPartitionId);
                 if (entry.getKey() != mostLoadedConsumerId) {
                     // Swap dead partition with one from most loaded consumer
-                    ArrayList<Integer> mostLoadedConsumerPartitions = consumerPartitions.get(mostLoadedConsumerId);
+                    ArrayList<Integer> mostLoadedConsumerPartitions = consumerIdToPartitions.get(mostLoadedConsumerId);
                     int swapIndex = ThreadLocalRandom.current().nextInt(mostLoadedConsumerPartitions.size());
                     int swappedPartition = mostLoadedConsumerPartitions.get(swapIndex);
                     partitions.add(swappedPartition);
@@ -63,12 +60,11 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         }
     }
 
-    @Override
-    public void balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> consumerPartitions, Integer bornPartitionId) {
+    public void balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornPartitionId) {
         // Find consumer with least partitions
-        int leastLoadedConsumerId = getLeastLoadedConsumer(consumerPartitions);
+        int leastLoadedConsumerId = getLeastLoadedConsumer(consumerIdToPartitions);
         // Add born partition to least loaded consumer
-        ArrayList<Integer> leastLoadedConsumerPartitions = consumerPartitions.get(leastLoadedConsumerId);
+        ArrayList<Integer> leastLoadedConsumerPartitions = consumerIdToPartitions.get(leastLoadedConsumerId);
         leastLoadedConsumerPartitions.add(bornPartitionId);
     }
 
@@ -97,6 +93,5 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         }
         return mostLoadedConsumerId;
     }
-
 
 }
