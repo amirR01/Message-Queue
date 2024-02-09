@@ -2,9 +2,13 @@ package MQproject.server.Implementation;
 
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
+import MQproject.server.Model.Data.Tuple;
 import MQproject.server.Model.message.*;
+import MQproject.server.Model.message.BrokerServerMessageAboutClient.BrokerServerSmallerMessageAboutClient;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -15,25 +19,19 @@ public class ServerImplementation implements ServerService {
     private RoundRobinLoadBalancer producerLoadBalancer;
     // @Autowired
     // private RoundRobinLoadBalancer consumerLoadBalancer;
+    
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    // private final RestTemplate restTemplate;
-
-
-    // private HashMap<String, String> brokerKeys = new HashMap<>();  // should be set by server
-    private ArrayList<String> allBrokers = new ArrayList<>();   // should be received from brokers
-    // private ArrayList<String> producerKeys = new ArrayList<>(); // should be received from producer
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
     private Set<Integer> generatedTokens = new HashSet<>();
     private Random random = new Random();
+
     private HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions;
     private HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions;
     private HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions;
 
-    public String getMessageToSend(Integer clientPort) {
-        // TODO: implement it better!
-        String result = "Sallam";
-        return result;
-    }
+    private HashMap<Integer, ArrayList<Integer>> producerIdToPartitions;
+    public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
 
 
     public static void main(String[] args) {
@@ -41,6 +39,69 @@ public class ServerImplementation implements ServerService {
         System.out.println("hello");
         s.runServer();
         System.out.println("after hello");
+    }
+
+
+    public void addPartitionAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
+
+        restTemplate.postForEntity(
+                "http://" + brokersIds.get(brokerId).getIp() + ":"
+                        + brokersIds.get(brokerId).getPort()
+                        + "/api/broker-server/add-partition",
+                        message, 
+                        BrokerServerMessageAboutPartitions.class
+        );
+        // TODO: can also get ack response from brokers 
+    }
+
+
+    public void removePartitionAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
+
+        restTemplate.postForEntity(
+                "http://" + brokersIds.get(brokerId).getIp() + ":"
+                        + brokersIds.get(brokerId).getPort()
+                        + "/api/broker-server/remove-partition",
+                        message, 
+                        BrokerServerMessageAboutPartitions.class
+        );
+        // TODO: can also get ack response from brokers 
+    }
+
+    public void movePartitionAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
+
+        restTemplate.postForEntity(
+                "http://" + brokersIds.get(brokerId).getIp() + ":"
+                        + brokersIds.get(brokerId).getPort()
+                        + "/api/broker-server/move-partition",
+                        message, 
+                        BrokerServerMessageAboutPartitions.class
+        );
+        // TODO: can also get ack response from brokers 
+    }
+
+
+    public void clonePartitionAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
+
+        restTemplate.postForEntity(
+                "http://" + brokersIds.get(brokerId).getIp() + ":"
+                        + brokersIds.get(brokerId).getPort()
+                        + "/api/broker-server/add-partition",
+                        message, 
+                        BrokerServerMessageAboutPartitions.class
+        );
+        // TODO: can also get ack response from brokers 
+    }
+
+    public void becomeLeaderAPI(Integer brokerId, BrokerServerMessageAboutPartitions message) {
+
+        restTemplate.postForEntity(
+                "http://" + brokersIds.get(brokerId).getIp() + ":"
+                        + brokersIds.get(brokerId).getPort()
+                        + "/api/broker-server/become-leader",
+                        message, 
+                        BrokerServerMessageAboutBrokers.class
+        );
+        // TODO: can also get ack response from brokers 
     }
 
     @Override
@@ -55,51 +116,17 @@ public class ServerImplementation implements ServerService {
     }
 
 
-    // @Override
-    // public void respondProducer(int producerPortNumber) {
-    //     // try {
-    //     //     return portNumber;
-    //     // } catch (Exception e) {
-    //     //     // TODO: handle exception
-    //     // }
-
-    //     // assign a random broker to the producer key
-    //     for (int key = 0; key < producerKeys.size(); key++) {
-    //         String nextBroker = producerLoadBalancer.getNextBroker();
-    //         brokerKeys.put(producerKeys.get(key), nextBroker);
-    //     }
-
-    //     // TODO: Return that brokerKeys to producer.
-    // }
-
-
-    // public void addPartititon(Integer brokerId, Integer partitionId) {
-    //     // Use the consumer IP to pull a message from the server
-    //     BrokerClientMessage bigMessage = new BrokerClientMessage();
-    //     bigMessage.messages.add(
-    //             new BrokerClientMessage.BrokerClientSmallerMessage(
-    //                     myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
-
-    //     ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
-    //             "http://" + addressMap.get(brokerId).getFirst() + ":"
-    //                     + addressMap.get(brokerId).getSecond()
-    //                     + "/api/broker-client/consume-message",
-    //             bigMessage,
-    //             BrokerClientMessage.class
-    //     );
-    //     BrokerClientMessage responseBody = response.getBody();
-
-    //     // ASYNC function call on response body
-    //     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-    //         commandLineInterface.printMessage(responseBody.messages);
-    //     });
-
-    // }
-
-
     @Override
-    public ConsumerServerMessage informBroker(ConsumerServerMessage message) {
-        return message;
+    public void informBroker(Integer brokerId, BrokerServerMessageAboutClient message) {
+
+        restTemplate.postForEntity(
+            "http://" + brokersIds.get(brokerId).getIp() + ":"
+                    + brokersIds.get(brokerId).getPort()
+                    + "/api/broker-server/become-leader",
+                    message, 
+                    BrokerServerMessageAboutBrokers.class
+    );
+    // TODO: can also get ack response from brokers 
     }
 
 
@@ -107,43 +134,52 @@ public class ServerImplementation implements ServerService {
     public ConsumerServerMessage subscribe(ConsumerServerMessage message) {
         for (ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
-                // TODO: add a better Load Balancer
+
+                // TODO: add a better Load Balancer 
                 Broker toAssignBroker = producerLoadBalancer.getNextBroker();
                 smallerMessage.brokerId = toAssignBroker.getId();
                 smallerMessage.brokerPort = toAssignBroker.getPort();
                 smallerMessage.brokerIp = toAssignBroker.getIp();
+                smallerMessage.partitionId = null;
 
+                // Inform brokers that a new subscriber added
+                BrokerServerMessageAboutClient brokerMessage = new BrokerServerMessageAboutClient();
+                brokerMessage.messages.add(
+                    new BrokerServerSmallerMessageAboutClient(
+                        smallerMessage.partitionId, smallerMessage.brokerId, smallerMessage.ClientId, MessageType.INFORM_BROKER_ABOUT_SUBSCRIBER));
+                informBroker(smallerMessage.brokerId, brokerMessage);
             }
         }
-        // TODO: inform broker that a new subscriber added.
-        informBroker(message);
         return message;
     }
 
 
     @Override
     public ProducerServerMessage produce(ProducerServerMessage message) {
+        // producerIdToPartitions.put(message.messages.get(0), new ArrayList())
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
                 // TODO: add a better Load Balancer
                 // TODO: save the producers id and the partition id in a map
+                // producerIdToPartitions.put(smallerMessage.ClientId, smallerMessage.PartitionId);
                 Broker toAssignedBroker = producerLoadBalancer.getNextBroker();
                 smallerMessage.brokerId = toAssignedBroker.getId();
                 smallerMessage.brokerPort = toAssignedBroker.getPort();
                 smallerMessage.brokerIp = toAssignedBroker.getIp();
                 // TODO: put approperiate partition in smallerMessage.PartitionId
                 smallerMessage.PartitionId = null;
+
+                // Inform brokers that a new producer added
+                BrokerServerMessageAboutClient brokerMessage = new BrokerServerMessageAboutClient();
+                brokerMessage.messages.add(
+                    new BrokerServerSmallerMessageAboutClient(
+                        smallerMessage.PartitionId, smallerMessage.brokerId, smallerMessage.ClientId, MessageType.INFORM_BROKER_ABOUT_PRODUCER));
+                informBroker(smallerMessage.brokerId, brokerMessage);
             }
         }
-        // TODO: inform the brokers
         return message;
     }
 
-    @Override
-    public BrokerServerMessageAboutPartitions handleNewPartitions(BrokerServerMessageAboutPartitions message) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handleNewPartitions'");
-    }
 
     public int generateToken() {
         int token;
@@ -172,7 +208,7 @@ public class ServerImplementation implements ServerService {
         for (Broker broker : brokersIds.values()) {
             message.messages.add(new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(broker.getId(), broker.getIp(), broker.getPort(), MessageType.LIST_BROKERS));
         }
-
+        
         return message;
     }
 }
