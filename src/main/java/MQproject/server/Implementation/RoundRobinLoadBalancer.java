@@ -1,11 +1,12 @@
 package MQproject.server.Implementation;
 
 
-import MQproject.server.model.Broker;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+
+import MQproject.server.Model.Broker;
 @Service
 public class RoundRobinLoadBalancer {
     private List<Broker> brokers;
