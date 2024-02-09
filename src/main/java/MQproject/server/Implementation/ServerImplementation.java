@@ -30,8 +30,9 @@ public class ServerImplementation implements ServerService{
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
     private Set<Integer> generatedTokens = new HashSet<>();
     private Random random = new Random();
-
-    
+    private HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions;
+    private HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions;
+    private HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions;
 
     public ServerImplementation() {
         // TODO: Get these brokers from server.
