@@ -1,15 +1,9 @@
 package MQproject.server.Interface;
 
-
-import MQproject.server.model.message.BrokerServerMessageAboutBrokers;
-import MQproject.server.model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.model.message.ConsumerServerMessage;
-import MQproject.server.model.message.ProducerServerMessage;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
 import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.Model.message.ServerConsumerMessage;
-import MQproject.server.Model.message.ServerProducerMessage;
-
+import MQproject.server.Model.message.ConsumerServerMessage;
+import MQproject.server.Model.message.ProducerServerMessage;
 
 public interface ServerService {
 

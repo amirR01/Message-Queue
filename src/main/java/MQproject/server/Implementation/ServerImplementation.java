@@ -1,31 +1,20 @@
 package MQproject.server.Implementation;
 
-import java.util.*;
-
+import MQproject.server.Interface.ServerService;
+import MQproject.server.Model.Broker;
+import MQproject.server.Model.message.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import MQproject.server.Caller.BrokerCaller;
-import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.Broker;
-import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
-import MQproject.server.model.message.BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers;
-import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
-import MQproject.server.Model.message.MessageType;
-import MQproject.server.Model.message.ProducerServerMessage;
-import MQproject.server.model.message.ConsumerServerMessage;
-import org.springframework.web.client.RestTemplate;
-import MQproject.server.Model.message.ProducerServerMessage;
+import java.util.*;
 
 @Service
-public class ServerImplementation implements ServerService{
+public class ServerImplementation implements ServerService {
 
     @Autowired
     private RoundRobinLoadBalancer producerLoadBalancer;
     // @Autowired
     // private RoundRobinLoadBalancer consumerLoadBalancer;
-    @Autowired
-    public BrokerCaller brokerCaller;
 
     // private final RestTemplate restTemplate;
 
@@ -108,8 +97,6 @@ public class ServerImplementation implements ServerService{
     // }
 
 
-
-
     @Override
     public ConsumerServerMessage informBroker(ConsumerServerMessage message) {
         return message;
@@ -183,7 +170,7 @@ public class ServerImplementation implements ServerService{
     public BrokerServerMessageAboutBrokers listAllBrokers() {
         BrokerServerMessageAboutBrokers message = new BrokerServerMessageAboutBrokers();
         for (Broker broker : brokersIds.values()) {
-            message.messages.add(new BrokerServerSmallerMessageAboutBrokers(broker.getId(), broker.getIp(), broker.getPort(), MessageType.LIST_BROKERS));
+            message.messages.add(new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(broker.getId(), broker.getIp(), broker.getPort(), MessageType.LIST_BROKERS));
         }
 
         return message;
