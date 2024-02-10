@@ -4,9 +4,7 @@ import MQproject.server.Interface.ConsumerLoadBalancer;
 import java.util.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
@@ -60,12 +58,14 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         }
     }
 
-    public void balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornPartitionId) {
+    public Integer balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornPartitionId) {
         // Find consumer with least partitions
         int leastLoadedConsumerId = getLeastLoadedConsumer(consumerIdToPartitions);
         // Add born partition to least loaded consumer
         ArrayList<Integer> leastLoadedConsumerPartitions = consumerIdToPartitions.get(leastLoadedConsumerId);
         leastLoadedConsumerPartitions.add(bornPartitionId);
+
+        return leastLoadedConsumerId;
     }
 
     private int getLeastLoadedConsumer(HashMap<Integer, ArrayList<Integer>> consumerPartitions) {

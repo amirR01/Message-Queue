@@ -19,8 +19,6 @@ public class ServerConsumerController {
     public ResponseEntity<Object> subscribe(@RequestBody ConsumerServerMessage message) {
         try {
             ConsumerServerMessage responseMessage = serverService.subscribe(message);
-// load balance and choose some partitions and its holders brokers and return it to the consumer
-            // TODO: inform about new consumer update brokers data about consumers.
             return ResponseEntity.ok(responseMessage);
         } catch (Exception e) {
             String errorMessage = e.getMessage();

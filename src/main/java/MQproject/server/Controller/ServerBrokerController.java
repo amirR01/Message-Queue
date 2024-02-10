@@ -19,13 +19,13 @@ public class ServerBrokerController {
     private ServerService serverService;
 
 
-    @PostMapping(value = "/register-broker", consumes = "application/json")
+    @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<BrokerServerMessageAboutBrokers> registerBroker(@RequestBody BrokerServerMessageAboutBrokers message) {
         BrokerServerMessageAboutBrokers response = serverService.registerBroker(message);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(value = "/list-brokers", consumes = "application/json")
+    @PostMapping(value = "/list", consumes = "application/json")
     public ResponseEntity<BrokerServerMessageAboutBrokers> listAllBrokers() {
         BrokerServerMessageAboutBrokers response = serverService.listAllBrokers();
         return ResponseEntity.ok(response);
