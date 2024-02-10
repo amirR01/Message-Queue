@@ -1,7 +1,8 @@
 package MQproject.client.Interface;
 
 import MQproject.client.Implementation.Tuple;
-import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 
 public interface Consumer {
     public void runConsumer();
@@ -12,4 +13,5 @@ public interface Consumer {
 
     public String pull();
 
+    HashMap<Integer, Tuple<String, Tuple<String, Integer>>> subscribe_for_the_python_client();
 }

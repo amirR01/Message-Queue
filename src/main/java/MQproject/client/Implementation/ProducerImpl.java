@@ -21,7 +21,7 @@ public class ProducerImpl implements Producer {
     @Autowired
     public ServerCaller serverCaller;
 
-    private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap;
+    private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap = new HashMap<>();
     // first: key, second: partition ID, third: brokerID, fourth: brokerIP, fifth: port
     public Integer myProducerID;
 
@@ -52,7 +52,7 @@ public class ProducerImpl implements Producer {
     }
 
     @Override
-    public void produceMessage(String message, String key) {
+    public void produceMessage(String key, String message) {
         // get address if not valid
         // send the message to the broker
         if (!addressMap.containsKey(key)) {
@@ -74,7 +74,7 @@ public class ProducerImpl implements Producer {
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
-                        myProducerID, null, "key:" + key + ":" + "value:" + message
+                        myProducerID, null, "key:" + key + "-" + "value:" + message
                         + "\n", MessageType.PRODUCE_MESSAGE));
 
 
@@ -105,8 +105,6 @@ public class ProducerImpl implements Producer {
             // retry
             registerToServer();
         }
-
-        // where is the api call???
     }
 
 }

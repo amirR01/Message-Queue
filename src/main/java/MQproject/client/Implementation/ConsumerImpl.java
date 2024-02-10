@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -28,7 +27,7 @@ public class ConsumerImpl implements Consumer {
     @Autowired
     public CommandLineInterfaceOut commandLineInterface;
 
-    private HashMap<Integer, Tuple<String, Tuple<String, Integer>>> addressMap;
+    private HashMap<Integer, Tuple<String, Tuple<String, Integer>>> addressMap = new HashMap<>();
 
 
     public Integer myConsumerID;
@@ -103,8 +102,10 @@ public class ConsumerImpl implements Consumer {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public void subscribe_for_the_python_client() {
+    @Override
+    public HashMap<Integer, Tuple<String, Tuple<String, Integer>>> subscribe_for_the_python_client() {
         getBrokerAddress();
+        return addressMap;
     }
     public void pull_for_the_python_client() {
         consumeMessage(addressMap.keySet().iterator().next());
