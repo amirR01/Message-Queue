@@ -212,6 +212,31 @@ public class ServerImplementation implements ServerService {
         }
     }
 
+
+    @Scheduled(fixedRate = 60000)
+    private void checkConsumerStatus() {
+        long currentTime = System.currentTimeMillis();
+        List<Integer> inactiveConsumers = new ArrayList<>();
+
+        for (Map.Entry<Integer, Client> entry : allConsumersIds.entrySet()) {
+            int clientId = entry.getKey();
+            Client client = entry.getValue();
+            long lastSeenTime = client.getLastSeenTime();
+
+            if (currentTime - lastSeenTime > 60000) {
+                // Broker is inactive for more than 1 minute
+                inactiveConsumers.add(clientId);
+            }
+        }
+
+        for (Integer clientId : inactiveConsumers) {
+            // not to remove here call load balancer.
+            allConsumersIds.remove(clientId);
+            consumerLoadBalancer.balanceOnConsumerDeath(consumerIdToPartitions, clientId);
+            System.out.println("Removed inactive consumer: " + clientId);
+        }
+    }
+
     @Override
     public void stopServer() {
         // TODO Auto-generated method stub
