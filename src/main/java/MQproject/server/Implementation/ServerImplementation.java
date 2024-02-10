@@ -330,10 +330,13 @@ public class ServerImplementation implements ServerService {
                 // TODO: response producer with the partition id.
 
                 int clientId = smallerMessage.ClientId;
+                int partitionId = keyToPartition.get(smallerMessage.key);
+                int brokerId = findThisPartitionBroker(partitionId);
+                Broker toAssignedBroker = brokersIds.get(brokerId);
                 smallerMessage.brokerId = toAssignedBroker.getId();
                 smallerMessage.brokerPort = toAssignedBroker.getPort();
                 smallerMessage.brokerIp = toAssignedBroker.getIp();
-                smallerMessage.PartitionId = null;    // TODO: put approperiate partitionId here from LB Response
+                smallerMessage.PartitionId = partitionId;
                 int newPartitionId = smallerMessage.PartitionId;
 
                 // update consumerIdToPartitions
