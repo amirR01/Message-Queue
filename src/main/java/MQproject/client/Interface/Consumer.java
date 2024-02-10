@@ -1,17 +1,17 @@
 package MQproject.client.Interface;
 
-import MQproject.client.Implementation.Tuple;
-
-import java.util.HashMap;
+import java.util.List;
 
 public interface Consumer {
     public void runConsumer();
 
     public void stopConsumer();
 
+    List<String> pull_for_the_python_client();
+
     public void subscribe();
 
     public String pull();
 
-    HashMap<Integer, Tuple<String, Tuple<String, Integer>>> subscribe_for_the_python_client();
+    void subscribe_for_the_python_client();
 }

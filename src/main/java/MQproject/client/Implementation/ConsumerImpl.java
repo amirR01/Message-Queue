@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -89,7 +90,6 @@ public class ConsumerImpl implements Consumer {
         BrokerClientMessage responseBody = response.getBody();
 
         return responseBody.messages;
-
     }
 
     @Override
@@ -103,13 +103,20 @@ public class ConsumerImpl implements Consumer {
     }
 
     @Override
-    public HashMap<Integer, Tuple<String, Tuple<String, Integer>>> subscribe_for_the_python_client() {
+    public void subscribe_for_the_python_client() {
         getBrokerAddress();
-        return addressMap;
     }
-    public void pull_for_the_python_client() {
-        consumeMessage(addressMap.keySet().iterator().next());
+
+    @Override
+    public List<String> pull_for_the_python_client() {
+            List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(addressMap.keySet().iterator().next());
+            List<String> messages_data = new ArrayList<>();
+            for (BrokerClientMessage.BrokerClientSmallerMessage message : messages) {
+                messages_data.add(message.data);
+            }
+            return messages_data;
     }
+
     @Override
     public void subscribe() {
         getBrokerAddress();
