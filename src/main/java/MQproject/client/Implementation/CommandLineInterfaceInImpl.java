@@ -4,6 +4,7 @@ import MQproject.client.Interface.CommandLineInterfaceIn;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.Interface.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -18,6 +19,12 @@ public class CommandLineInterfaceInImpl implements CommandLineInterfaceIn {
     @Autowired
     public Consumer consumer;
 
+
+    @Value("MQproject.client.consumer")
+    public Boolean isConsumer;
+
+    @Value("MQproject.client.producer")
+    public Boolean isProducer;
     @Override
     public String getCommand() {
         Scanner scanner = new Scanner(System.in);
@@ -28,14 +35,20 @@ public class CommandLineInterfaceInImpl implements CommandLineInterfaceIn {
     public void handleCommands(LinkedList<String> command) {
         switch (command.getFirst()) {
             case "produce":
-                producer.produceMessage(command.getFirst(), command.get(1));
-                break;
+                if (isProducer){
+                    producer.produceMessage(command.getFirst(), command.get(1));
+                    break;
+                }
             case "pull":
-                consumer.pull();
-                break;
+                if (isConsumer){
+                    consumer.pull();
+                    break;
+                }
             case "subscribe":
-                consumer.subscribe();
-                break;
+                if (isConsumer){
+                    consumer.subscribe();
+                    break;
+                }
             default:
                 System.out.println("Invalid command");
         }

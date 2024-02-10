@@ -20,6 +20,4 @@ public interface ServerCaller {
     // produce
     @PostMapping("api/server-client/assign-partition")
     ProducerServerMessage assignPartition(@RequestBody ProducerServerMessage message);
-
-
 }

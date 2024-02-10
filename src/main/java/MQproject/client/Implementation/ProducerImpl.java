@@ -74,7 +74,8 @@ public class ProducerImpl implements Producer {
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
-                        myProducerID, null, key + ":" + message, MessageType.PRODUCE_MESSAGE));
+                        myProducerID, null, "key:" + key + ":" + "value:" + message
+                        + "\n", MessageType.PRODUCE_MESSAGE));
 
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(

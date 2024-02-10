@@ -7,10 +7,12 @@ import MQproject.client.model.message.BrokerClientMessage;
 import MQproject.client.model.message.ClientServerMessage;
 import MQproject.client.model.message.ConsumerServerMessage;
 import MQproject.client.model.message.MessageType;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -29,12 +31,20 @@ public class ConsumerImpl implements Consumer {
     private HashMap<Integer, Tuple<String, Tuple<String, Integer>>> addressMap;
 
 
-
     public Integer myConsumerID;
     @Value("${MQproject.client.my.address}")
     public String myIp;
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
+    @Value("MQproject.client.consumer")
+    public Boolean isConsumer;
+
+    @PostConstruct
+    public void init() {
+        if (isConsumer) {
+            runConsumer();
+        }
+    }
 
     public void getBrokerAddress() {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
