@@ -5,16 +5,12 @@ import MQproject.server.Model.Broker;
 import MQproject.server.Model.data.Tuple;
 import MQproject.server.Model.message.*;
 import MQproject.server.Model.message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties.Producer;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class ServerImplementation implements ServerService {
@@ -23,7 +19,7 @@ public class ServerImplementation implements ServerService {
     private RoundRobinLoadBalancer producerLoadBalancer;
     // @Autowired
     // private RoundRobinLoadBalancer consumerLoadBalancer;
-    
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
@@ -49,8 +45,8 @@ public class ServerImplementation implements ServerService {
     public void addPartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
-            new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                partitionId, brokerId, -1, isReplica, MessageType.ADD_PARTITION));
+                new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
+                        partitionId, brokerId, -1, isReplica, MessageType.ADD_PARTITION));
 
         Broker broker = brokersIds.get(brokerId);
 
@@ -58,8 +54,8 @@ public class ServerImplementation implements ServerService {
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
                         + "/api/broker-server/add-partition",
-                        message, 
-                        BrokerServerMessageAboutPartitions.class
+                message,
+                BrokerServerMessageAboutPartitions.class
         );
     }
 
@@ -68,8 +64,8 @@ public class ServerImplementation implements ServerService {
 
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
-            new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                partitionId, brokerId, -1, isReplica, MessageType.REMOVE_PARTITION));
+                new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
+                        partitionId, brokerId, -1, isReplica, MessageType.REMOVE_PARTITION));
 
         Broker broker = brokersIds.get(brokerId);
 
@@ -77,8 +73,8 @@ public class ServerImplementation implements ServerService {
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
                         + "/api/broker-server/remove-partition",
-                        message, 
-                        BrokerServerMessageAboutPartitions.class
+                message,
+                BrokerServerMessageAboutPartitions.class
         );
     }
 
@@ -88,8 +84,8 @@ public class ServerImplementation implements ServerService {
         // leader partition move
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
-            new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                partitionId, sourceBrokerId, destinationBrokerId, isReplica, MessageType.MOVE_PARTITION));
+                new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
+                        partitionId, sourceBrokerId, destinationBrokerId, isReplica, MessageType.MOVE_PARTITION));
 
         Broker broker = brokersIds.get(sourceBrokerId);
 
@@ -97,8 +93,8 @@ public class ServerImplementation implements ServerService {
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
                         + "/api/broker-server/move-partition",
-                        message, 
-                        BrokerServerMessageAboutPartitions.class
+                message,
+                BrokerServerMessageAboutPartitions.class
         );
     }
 
@@ -106,42 +102,42 @@ public class ServerImplementation implements ServerService {
     public void clonePartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
-            new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                partitionId, brokerId, -1, isReplica, MessageType.CLONE_PARTITION));
+                new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
+                        partitionId, brokerId, -1, isReplica, MessageType.CLONE_PARTITION));
 
         Broker broker = brokersIds.get(brokerId);
         restTemplate.postForEntity(
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
                         + "/api/broker-server/clone-partition",
-                        message, 
-                        BrokerServerMessageAboutPartitions.class
+                message,
+                BrokerServerMessageAboutPartitions.class
         );
     }
 
     public void becomeLeaderAPI(Integer brokerId, Integer partitionId) {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
-            new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                partitionId, brokerId, -1, false, MessageType.BECOME_PARTITION_LEADER));
+                new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
+                        partitionId, brokerId, -1, false, MessageType.BECOME_PARTITION_LEADER));
 
         Broker broker = brokersIds.get(brokerId);
         restTemplate.postForEntity(
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
                         + "/api/broker-server/become-leader",
-                        message, 
-                        BrokerServerMessageAboutPartitions.class
+                message,
+                BrokerServerMessageAboutPartitions.class
         );
     }
 
     @Override
     public void runServer() {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(this::checkBrokersStatus, 0, 60, TimeUnit.SECONDS);
+//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//        scheduler.scheduleAtFixedRate(this::checkBrokersStatus, 0, 60, TimeUnit.SECONDS);
     }
 
-
+    @Scheduled(fixedRate = 60000)
     private void checkBrokersStatus() {
         long currentTime = System.currentTimeMillis();
         List<Integer> inactiveBrokers = new ArrayList<>();
@@ -151,13 +147,14 @@ public class ServerImplementation implements ServerService {
             Broker broker = entry.getValue();
             long lastSeenTime = broker.getLastSeenTime();
 
-            if (currentTime - lastSeenTime > 60000) { 
+            if (currentTime - lastSeenTime > 60000) {
                 // Broker is inactive for more than 1 minute
                 inactiveBrokers.add(brokerId);
             }
         }
 
         for (Integer brokerId : inactiveBrokers) {
+            // not to remove here call load balancer.
             brokersIds.remove(brokerId);
             System.out.println("Removed inactive broker: " + brokerId);
         }
@@ -174,12 +171,12 @@ public class ServerImplementation implements ServerService {
     public void informBroker(Integer brokerId, BrokerServerMessageAboutClients message) {
         Broker broker = brokersIds.get(brokerId);
         restTemplate.postForEntity(
-            "http://" + broker.getIp() + ":"
-                    + broker.getPort()
-                    + "/api/broker-server/inform-broker",
-                    message,
-                    BrokerServerMessageAboutClients.class
-    );
+                "http://" + broker.getIp() + ":"
+                        + broker.getPort()
+                        + "/api/broker-server/inform-broker",
+                message,
+                BrokerServerMessageAboutClients.class
+        );
     }
 
 
@@ -203,7 +200,7 @@ public class ServerImplementation implements ServerService {
                 // update consumerIdToPartitions
                 ArrayList<Integer> clientPartitions = consumerIdToPartitions.get(clientId);
                 if (clientPartitions != null) {
-                    clientPartitions.add(newPartitionId); 
+                    clientPartitions.add(newPartitionId);
                 } else {
                     clientPartitions = new ArrayList<>();
                     clientPartitions.add(newPartitionId);
@@ -214,9 +211,9 @@ public class ServerImplementation implements ServerService {
                 // put a hashmap here between subscriber id and it's partitions
                 BrokerServerMessageAboutClients brokerMessage = new BrokerServerMessageAboutClients();
                 brokerMessage.messages.add(
-                    new BrokerServerSmallerMessageAboutClients(
-                        clientId, consumerIdToPartitions.get(
-                            smallerMessage.ClientId), MessageType.INFORM_BROKER_ABOUT_SUBSCRIBER));
+                        new BrokerServerSmallerMessageAboutClients(
+                                clientId, consumerIdToPartitions.get(
+                                smallerMessage.ClientId), MessageType.INFORM_BROKER_ABOUT_SUBSCRIBER));
                 informBroker(smallerMessage.brokerId, brokerMessage);
             }
         }
@@ -244,7 +241,7 @@ public class ServerImplementation implements ServerService {
                 // update consumerIdToPartitions
                 ArrayList<Integer> clientPartitions = producerIdToPartitions.get(clientId);
                 if (clientPartitions != null) {
-                    clientPartitions.add(newPartitionId); 
+                    clientPartitions.add(newPartitionId);
                 } else {
                     clientPartitions = new ArrayList<>();
                     clientPartitions.add(newPartitionId);
@@ -254,9 +251,9 @@ public class ServerImplementation implements ServerService {
                 // Inform brokers that a new producer added
                 BrokerServerMessageAboutClients brokerMessage = new BrokerServerMessageAboutClients();
                 brokerMessage.messages.add(
-                    new BrokerServerSmallerMessageAboutClients(
-                        clientId, producerIdToPartitions.get(
-                            clientId), MessageType.INFORM_BROKER_ABOUT_PRODUCER));
+                        new BrokerServerSmallerMessageAboutClients(
+                                clientId, producerIdToPartitions.get(
+                                clientId), MessageType.INFORM_BROKER_ABOUT_PRODUCER));
                 informBroker(smallerMessage.brokerId, brokerMessage);
             }
         }
@@ -276,11 +273,12 @@ public class ServerImplementation implements ServerService {
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message) {
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_BROKER ||
-            brokersIds.get(smallerMessage.brokerId) == null) {                      // for dead brokers
+                    brokersIds.get(smallerMessage.brokerId) == null) {                      // for dead brokers
                 smallerMessage.brokerId = generateToken();
                 brokersIds.put(smallerMessage.brokerId, new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
+                // call load balancer
             } else {
-                // nothing
+                // set last seen time to current time
             }
         }
         return message;
@@ -290,7 +288,7 @@ public class ServerImplementation implements ServerService {
     public ConsumerServerMessage registerConsumer(ConsumerServerMessage message) {
         for (ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER ||
-             consumerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead consumers
+                    consumerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead consumers
 
                 smallerMessage.ClientId = generateToken();
                 ArrayList<Integer> clientPartitions = new ArrayList<>();
@@ -307,14 +305,14 @@ public class ServerImplementation implements ServerService {
     public ProducerServerMessage registerProducer(ProducerServerMessage message) {
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_PRODUCER ||
-            producerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead producers
+                    producerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead producers
 
-               smallerMessage.ClientId = generateToken();
-               ArrayList<Integer> clientPartitions = new ArrayList<>();
-               producerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
-           } else {
-               // nothing
-           }
+                smallerMessage.ClientId = generateToken();
+                ArrayList<Integer> clientPartitions = new ArrayList<>();
+                producerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
+            } else {
+                // nothing
+            }
         }
         return message;
     }
@@ -326,7 +324,7 @@ public class ServerImplementation implements ServerService {
         for (Broker broker : brokersIds.values()) {
             message.messages.add(new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(broker.getId(), broker.getIp(), broker.getPort(), MessageType.LIST_BROKERS));
         }
-        
+
         return message;
     }
 
