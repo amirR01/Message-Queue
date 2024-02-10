@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.BrokerServerMessageAboutPartitions;
 import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
 
 
@@ -19,11 +18,6 @@ public class ServerBrokerController {
     @Autowired
     private ServerService serverService;
 
-    @PostMapping(value = "/add-partition", consumes = "application/json")
-    public ResponseEntity<Object> addPartition(@RequestBody BrokerServerMessageAboutPartitions message) {
-        serverService.handleNewPartitions(message);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping(value = "/register-broker", consumes = "application/json")
     public ResponseEntity<BrokerServerMessageAboutBrokers> registerBroker(@RequestBody BrokerServerMessageAboutBrokers message) {
