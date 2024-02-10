@@ -7,11 +7,7 @@ import MQproject.server.Model.message.ProducerServerMessage;
 
 public interface ServerService {
 
-    public int portNumber = 5000;
-
-    public String ipAddress = "127.0.0.1";
-
-    // number of brokers 
+    // number of brokers (Test)
     public int brokersNumber = 10;
 
     public void runServer();
@@ -25,6 +21,10 @@ public interface ServerService {
     public ConsumerServerMessage subscribe(ConsumerServerMessage message);
 
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message);
+
+    public ConsumerServerMessage registerConsumer(ConsumerServerMessage message);
+
+    public ProducerServerMessage registerProducer(ProducerServerMessage message);
 
     public BrokerServerMessageAboutBrokers listAllBrokers();
 

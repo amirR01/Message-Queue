@@ -1,6 +1,8 @@
 package MQproject.server.Model.message;
 
 public enum MessageType {
+    REGISTER_PRODUCER,
+    REGISTER_CONSUMER,
     REGISTER_BROKER,
     PRODUCE_MESSAGE,
     CONSUME_MESSAGE,

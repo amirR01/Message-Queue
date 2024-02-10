@@ -7,6 +7,7 @@ import MQproject.server.Model.message.*;
 import MQproject.server.Model.message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties.Producer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -274,7 +275,8 @@ public class ServerImplementation implements ServerService {
     @Override
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message) {
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
-            if (smallerMessage.messageType == MessageType.REGISTER_BROKER) {
+            if (smallerMessage.messageType == MessageType.REGISTER_BROKER ||
+            brokersIds.get(smallerMessage.brokerId) == null) {                      // for dead brokers
                 smallerMessage.brokerId = generateToken();
                 brokersIds.put(smallerMessage.brokerId, new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
             } else {
@@ -285,6 +287,40 @@ public class ServerImplementation implements ServerService {
     }
 
     @Override
+    public ConsumerServerMessage registerConsumer(ConsumerServerMessage message) {
+        for (ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER ||
+             consumerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead consumers
+
+                smallerMessage.ClientId = generateToken();
+                ArrayList<Integer> clientPartitions = new ArrayList<>();
+                consumerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
+            } else {
+                // nothing
+            }
+        }
+        return message;
+    }
+
+
+    @Override
+    public ProducerServerMessage registerProducer(ProducerServerMessage message) {
+        for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
+            if (smallerMessage.messageType == MessageType.REGISTER_PRODUCER ||
+            producerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead producers
+
+               smallerMessage.ClientId = generateToken();
+               ArrayList<Integer> clientPartitions = new ArrayList<>();
+               producerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
+           } else {
+               // nothing
+           }
+        }
+        return message;
+    }
+
+
+    @Override
     public BrokerServerMessageAboutBrokers listAllBrokers() {
         BrokerServerMessageAboutBrokers message = new BrokerServerMessageAboutBrokers();
         for (Broker broker : brokersIds.values()) {
@@ -293,4 +329,5 @@ public class ServerImplementation implements ServerService {
         
         return message;
     }
+
 }
