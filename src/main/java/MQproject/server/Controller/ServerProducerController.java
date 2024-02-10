@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import MQproject.server.Interface.ServerService;
+import MQproject.server.Model.message.ConsumerServerMessage;
 import MQproject.server.Model.message.ProducerServerMessage;
 
 @RestController
@@ -18,7 +19,7 @@ public class ServerProducerController {
 
     @PostMapping(value = "/produce", consumes = "application/json")
     public ResponseEntity<Object> produce(@RequestBody ProducerServerMessage message) {
-        // TODO: inform about new produce update brokers data about consumers.
+// TODO: inform about new produce update brokers data about consumers.
         try {
             ProducerServerMessage responseMessage = serverService.produce(message);
             return ResponseEntity.ok(responseMessage);
@@ -28,5 +29,11 @@ public class ServerProducerController {
         }
         // not reachable
         return null;
+    }
+
+    @PostMapping(value = "/register-producer", consumes = "application/json")
+    public ResponseEntity<ProducerServerMessage> registerProducer(@RequestBody ProducerServerMessage message) {
+        ProducerServerMessage response = serverService.registerProducer(message);
+        return ResponseEntity.ok(response);
     }
 }
