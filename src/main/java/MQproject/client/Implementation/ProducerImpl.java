@@ -6,6 +6,7 @@ import MQproject.client.model.message.BrokerClientMessage;
 import MQproject.client.model.message.ClientServerMessage;
 import MQproject.client.model.message.MessageType;
 import MQproject.client.model.message.ProducerServerMessage;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestOperations;
 
 import java.util.HashMap;
+
 @Service
 public class ProducerImpl implements Producer {
 
@@ -27,8 +29,17 @@ public class ProducerImpl implements Producer {
     public String myIp;
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
+    @Value("MQproject.client.producer")
+    public Boolean isProducer;
 
     private RestOperations restTemplate;
+
+    @PostConstruct
+    public void init() {
+        if (isProducer) {
+            runProducer();
+        }
+    }
 
     @Override
     public void runProducer() {
@@ -44,13 +55,13 @@ public class ProducerImpl implements Producer {
     public void produceMessage(String message, String key) {
         // get address if not valid
         // send the message to the broker
-        if (!addressMap.containsKey(key)){
+        if (!addressMap.containsKey(key)) {
             ProducerServerMessage bigMessage =
                     new ProducerServerMessage();
 
             bigMessage.messages.add(
                     new ProducerServerMessage.ProducerServerSmallerMessage(
-                            myProducerID,key, null ,null,null, null, MessageType.GET_PARTITION
+                            myProducerID, key, null, null, null, null, MessageType.GET_PARTITION
                     )
             );
             ProducerServerMessage.ProducerServerSmallerMessage response =
@@ -81,12 +92,19 @@ public class ProducerImpl implements Producer {
 
         bigMessage.messages.add(
                 new ClientServerMessage.ClientServerSmallerMessage(
-                        null,myIp,myPort, MessageType.REGISTER_PRODUCER
+                        null, myIp, myPort, MessageType.REGISTER_PRODUCER
                 )
         );
-        ClientServerMessage.ClientServerSmallerMessage response =
-                serverCaller.registerToServer(bigMessage).messages.get(0);
-        myProducerID = response.ClientId;
+        try {
+            ClientServerMessage.ClientServerSmallerMessage response =
+                    serverCaller.registerToServer(bigMessage).messages.get(0);
+            myProducerID = response.ClientId;
+        } catch (Exception e) {
+            // retry
+            registerToServer();
+        }
+
+        // where is the api call???
     }
 
 }
