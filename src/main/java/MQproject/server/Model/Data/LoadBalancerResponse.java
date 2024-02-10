@@ -1,4 +1,6 @@
-package MQproject.server.Model.data;
+package MQproject.server.Model.Data;
+
+import MQproject.server.Model.Data.LoadBalancerResponseAction;
 
 public class LoadBalancerResponse {
     Integer sourceBrokerId;

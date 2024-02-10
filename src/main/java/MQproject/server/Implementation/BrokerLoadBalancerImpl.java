@@ -1,8 +1,8 @@
 package MQproject.server.Implementation;
 
 import MQproject.server.Interface.BrokerLoadBalancer;
-import MQproject.server.Model.data.LoadBalancerResponse;
-import MQproject.server.Model.data.LoadBalancerResponseAction;
+import MQproject.server.Model.Data.LoadBalancerResponse;
+import MQproject.server.Model.Data.LoadBalancerResponseAction;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,8 +19,65 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
     public ArrayList<LoadBalancerResponse> balanceOnBrokerBirth(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,
                                                                 HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions,
                                                                 Integer bornBrokerId) {
-        //TODO
-        return null;
+
+        ArrayList<LoadBalancerResponse> responses = new ArrayList<>();
+
+        ArrayList<Integer> bornBrokerLeaders = new ArrayList<>();
+        ArrayList<Integer> bornBrokerReplicas = new ArrayList<>();
+
+        // leaders
+        int mostLeaderLoadedBrokerId = getMostLoadedBroker(brokerIdToLeaderPartitions);
+        ArrayList<Integer> mostLeaderLoadedBrokerPartitions = brokerIdToLeaderPartitions.get(mostLeaderLoadedBrokerId);
+        int numLeadersToMove = mostLeaderLoadedBrokerPartitions.size() / 2;
+        for (int i = 0; i < numLeadersToMove; i++) {
+            int leaderId = mostLeaderLoadedBrokerPartitions.remove(0);
+            bornBrokerLeaders.add(leaderId);
+            responses.add(new LoadBalancerResponse(
+                    mostLeaderLoadedBrokerId,
+                    bornBrokerId,
+                    leaderId,
+                    LoadBalancerResponseAction.MOVE_PARTITION
+            ));
+        }
+
+        // replicas
+        HashMap<Integer, Integer> partitionIdToLeaderBroker = new HashMap<>();
+
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : brokerIdToLeaderPartitions.entrySet()) {
+            int brokerId = entry.getKey();
+            ArrayList<Integer> leaderIds = entry.getValue();
+            for (Integer leaderId : leaderIds) {
+                partitionIdToLeaderBroker.put(leaderId, brokerId);
+            }
+        }
+
+        int mostReplicaLoadedBrokerId = getMostLoadedBroker(brokerIdToReplicaPartitions);
+        ArrayList<Integer> mostReplicaLoadedBrokerPartitions = brokerIdToReplicaPartitions.get(mostReplicaLoadedBrokerId);
+        int numReplicasToMove = mostReplicaLoadedBrokerPartitions.size() / 2;
+        for (int i = 0; i < mostReplicaLoadedBrokerPartitions.size() || bornBrokerReplicas.size() < numReplicasToMove; i++) {
+            int replicaId = mostReplicaLoadedBrokerPartitions.get(i);
+            if (!bornBrokerLeaders.contains(replicaId)) {
+                bornBrokerReplicas.add(replicaId);
+                int leaderBrokerId = partitionIdToLeaderBroker.get(replicaId);
+                responses.add(new LoadBalancerResponse(
+                        leaderBrokerId,
+                        bornBrokerId,
+                        replicaId,
+                        LoadBalancerResponseAction.CLONE_PARTITION
+                ));
+                responses.add(new LoadBalancerResponse(
+                        mostReplicaLoadedBrokerId,
+                        replicaId,
+                        LoadBalancerResponseAction.REMOVE_PARTITION
+                ));
+            }
+        }
+        mostReplicaLoadedBrokerPartitions.removeAll(bornBrokerReplicas);
+
+        brokerIdToLeaderPartitions.put(bornBrokerId, bornBrokerLeaders);
+        brokerIdToReplicaPartitions.put(bornBrokerId, bornBrokerReplicas);
+
+        return responses;
     }
 
     public ArrayList<LoadBalancerResponse> balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,

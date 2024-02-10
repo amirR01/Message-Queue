@@ -1,4 +1,4 @@
-package MQproject.server.Model.data;
+package MQproject.server.Model.Data;
 
 public enum LoadBalancerResponseAction {
     ADD_PARTITION, // brokerId, newPartitionId

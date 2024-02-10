@@ -1,12 +1,11 @@
 package MQproject.server.Interface;
-
 // Situations:
 // 1. Broker registers
 // 2. Broker dies
 // 3. New partition gets added.
 // any others?
 
-import MQproject.server.Model.data.LoadBalancerResponse;
+import MQproject.server.Model.Data.LoadBalancerResponse;
 
 import java.util.ArrayList;
 import java.util.HashMap;
