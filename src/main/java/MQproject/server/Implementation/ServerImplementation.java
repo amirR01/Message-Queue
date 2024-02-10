@@ -48,14 +48,6 @@ public class ServerImplementation implements ServerService {
     public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
     public HashMap<String, Integer> keyToPartition = new HashMap<>();
 
-    // TODO: put these in application properties
-    // number of brokers (Test)
-    // public int brokersNumber = 3;
-
-    // public int consumersNumber = 0;
-
-    // public int producersNumber = 0;
-
 
     public static void main(String[] args) {
         ServerImplementation s = new ServerImplementation();
