@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ConsumerImpl implements Consumer {
@@ -51,7 +52,7 @@ public class ConsumerImpl implements Consumer {
         }
     }
 
-    public void getBrokerAddressPull() {
+    public String getBrokerAddressPull() {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
         bigMessage.messages.add(
                 new ConsumerServerMessage.ConsumerServerSmallerMessage(
@@ -60,10 +61,12 @@ public class ConsumerImpl implements Consumer {
         ConsumerServerMessage.ConsumerServerSmallerMessage response =
                 serverCaller.assignBroker(bigMessage).messages.get(0);
         addressMap.put(response.brokerId, new Tuple<>(response.key, new Tuple<>(response.brokerIp, response.brokerPort)));
-        consumeMessage(response.brokerId);
+        List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(response.brokerId);
+
+        return messages.get(0).data;
     }
 
-    public void consumeMessage(Integer brokerId) {
+    public List<BrokerClientMessage.BrokerClientSmallerMessage> consumeMessage(Integer brokerId) {
         // Use the consumer IP to pull a message from the server
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
@@ -79,10 +82,7 @@ public class ConsumerImpl implements Consumer {
         );
         BrokerClientMessage responseBody = response.getBody();
 
-        // ASYNC function call on response body
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            commandLineInterface.printMessage(responseBody.messages);
-        });
+        return responseBody.messages;
 
     }
 
@@ -103,7 +103,12 @@ public class ConsumerImpl implements Consumer {
         while (true) {
             i = i + 1;
             if (!addressMap.keySet().isEmpty()){
-                consumeMessage(addressMap.keySet().iterator().next());
+                List<BrokerClientMessage.BrokerClientSmallerMessage> messages =
+                        consumeMessage(addressMap.keySet().iterator().next());
+                // ASYNC function call on response body
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                    commandLineInterface.printMessage(messages);
+                });
             }
             if (i == 10) {
                 getBrokerAddress();
@@ -113,8 +118,8 @@ public class ConsumerImpl implements Consumer {
     }
 
     @Override
-    public void pull() {
-        getBrokerAddressPull();
+    public String pull() {
+        return getBrokerAddressPull();
     }
 
     private void registerToServer() {

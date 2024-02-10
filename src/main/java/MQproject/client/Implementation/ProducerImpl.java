@@ -60,13 +60,13 @@ public class ProducerImpl implements Producer {
         BrokerClientMessage bigMessage = new BrokerClientMessage();
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
-                        myProducerID, null, null, MessageType.PRODUCE_MESSAGE));
+                        myProducerID, null, key + ":" + message, MessageType.PRODUCE_MESSAGE));
 
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
                 "http://" + addressMap.get(key).getSecond().getSecond().getFirst() + ":"
                         + addressMap.get(key).getSecond().getSecond().getSecond()
-                        + "/api/broker-client/consume-message",
+                        + "/api/broker-client/produce-message",
                 bigMessage,
                 BrokerClientMessage.class
         );
