@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 public interface ServerCaller {
     @PostMapping("api/server-client/register")
     ClientServerMessage registerToServer(@RequestBody ClientServerMessage message);
-
+    // subscribe
     @PostMapping("api/server-client/assign-broker")
     ConsumerServerMessage assignBroker(@RequestBody ConsumerServerMessage message);
-
+    // produce
     @PostMapping("api/server-client/assign-partition")
     ProducerServerMessage assignPartition(@RequestBody ProducerServerMessage message);
 

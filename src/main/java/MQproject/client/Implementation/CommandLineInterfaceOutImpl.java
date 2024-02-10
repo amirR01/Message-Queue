@@ -2,9 +2,10 @@ package MQproject.client.Implementation;
 
 import MQproject.client.Interface.CommandLineInterfaceOut;
 import MQproject.client.model.message.BrokerClientMessage;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
-
-
+@Service
 public class CommandLineInterfaceOutImpl implements CommandLineInterfaceOut {
 
 

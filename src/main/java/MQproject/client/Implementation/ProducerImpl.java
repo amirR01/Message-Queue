@@ -9,10 +9,11 @@ import MQproject.client.model.message.ProducerServerMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestOperations;
 
 import java.util.HashMap;
-
+@Service
 public class ProducerImpl implements Producer {
 
     @Autowired
@@ -41,6 +42,8 @@ public class ProducerImpl implements Producer {
 
     @Override
     public void produceMessage(String message, String key) {
+        // get address if not valid
+        // send the message to the broker
         if (!addressMap.containsKey(key)){
             ProducerServerMessage bigMessage =
                     new ProducerServerMessage();

@@ -4,11 +4,12 @@ import MQproject.client.Interface.CommandLineInterfaceIn;
 import MQproject.client.Interface.Consumer;
 import MQproject.client.Interface.Producer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Scanner;
-
+@Service
 public class CommandLineInterfaceInImpl implements CommandLineInterfaceIn {
 
     @Autowired
