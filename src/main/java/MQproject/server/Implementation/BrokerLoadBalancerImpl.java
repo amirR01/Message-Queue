@@ -25,6 +25,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
             responses.add(new LoadBalancerResponse(
                     replicaBrokerId,
                     leaderId,
+                    true,
                     LoadBalancerResponseAction.BECOME_PARTITION_LEADER
             ));
             // remove id from brokerIdToReplicaPartitions and add it to brokerIdToLeaderPartitions
@@ -55,7 +56,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
             responses.add(new LoadBalancerResponse(
                     leaderBrokerId,
                     targetReplicaBrokerId,
-                    replicaId,
+                    false,
                     LoadBalancerResponseAction.CLONE_PARTITION
             ));
             brokerIdToReplicaPartitions.get(targetReplicaBrokerId).add(replicaId);
@@ -84,6 +85,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
                     mostLeaderLoadedBrokerId,
                     bornBrokerId,
                     leaderId,
+                    false,
                     LoadBalancerResponseAction.MOVE_PARTITION
             ));
         }
@@ -103,6 +105,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
                         leaderBrokerId,
                         bornBrokerId,
                         replicaId,
+                        false,
                         LoadBalancerResponseAction.CLONE_PARTITION
                 ));
                 responses.add(new LoadBalancerResponse(
@@ -164,7 +167,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
                 leastLeaderLoadedBrokerId,
                 leastReplicaLoadedBrokerId,
                 bornPartitionId,
-                true,
+                false,
                 LoadBalancerResponseAction.CLONE_PARTITION
         ));
         return responses;

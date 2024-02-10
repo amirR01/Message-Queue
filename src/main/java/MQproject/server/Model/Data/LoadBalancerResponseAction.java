@@ -1,9 +1,9 @@
 package MQproject.server.Model.Data;
 
 public enum LoadBalancerResponseAction {
-    ADD_PARTITION, // brokerId, newPartitionId
-    MOVE_PARTITION, // sourceBrokerId, DestinationBrokerId, partitionId
-    CLONE_PARTITION, // sourceBrokerId, DestinationBrokerId, partitionId
-    REMOVE_PARTITION, // brokerId, partitionId
-    BECOME_PARTITION_LEADER; // brokerId, partitionId
+    ADD_PARTITION, // brokerId, newPartitionId, false
+    MOVE_PARTITION, // sourceBrokerId, DestinationBrokerId, partitionId, false
+    CLONE_PARTITION, // sourceBrokerId, DestinationBrokerId, partitionId, false
+    REMOVE_PARTITION, // brokerId, partitionId, true
+    BECOME_PARTITION_LEADER; // brokerId, partitionId, true
 }

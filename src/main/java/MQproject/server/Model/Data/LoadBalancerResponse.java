@@ -15,10 +15,11 @@ public class LoadBalancerResponse {
         this.action = action;
         this.isReplica = isReplica;
     }
-    public LoadBalancerResponse(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId, LoadBalancerResponseAction action) {
+    public LoadBalancerResponse(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId, boolean isReplica, LoadBalancerResponseAction action) {
         this.sourceBrokerId = sourceBrokerId;
         this.destinationBrokerId = destinationBrokerId;
         this.partitionId = partitionId;
+        this.isReplica = isReplica;
         this.action = action;
     }
     
