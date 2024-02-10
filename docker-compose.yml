@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
+
+  broker1:
+    image: registry.gitlab.com/amirr01/mq-sad-1402-1-broker:latest
+    volumes:
+      - ./data:/app/data
+      - ./src/main/resources/application.properties:/app/application.properties
+    ports:
+      - "8081:8080"
+
+#
+#  5403  vim docker-compose.yml
+#  5404  docker compose up -d --remove-orphans
+#  5405  docker compose ls
+#  5406  docker compose ps
+#  5407  vim docker-compose.yml
+#  5408  docker compose up -d app --scale 10
+#  5409  docker compose up -d app --scale app=10
+#  5410  docker compose exec nginx bash
+#  5411  docker compose ps
+#  5412  vim docker-compose.yml
+#  5413  docker compose up -d --remove-orphans
+#  5414  vim docker-compose.yml
+#  5415  docker compose up -d
+#  5416  docker compose exec nginx bash
+#  5417  curl -v http://app:80
+#  5418  docker compose ps
+#  5419  docker compose exec zk bash
+#  5420  history
