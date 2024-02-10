@@ -2,9 +2,9 @@ package MQproject.server.Implementation;
 
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
-import MQproject.server.Model.data.Tuple;
-import MQproject.server.Model.message.*;
-import MQproject.server.Model.message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
+import MQproject.server.Model.Data.Tuple;
+import MQproject.server.Model.Message.*;
+import MQproject.server.Model.Message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;

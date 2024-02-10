@@ -1,8 +1,7 @@
 package MQproject.server.Controller;
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.ConsumerServerMessage;
-import MQproject.server.Model.message.ServerConsumerMessage;
+import MQproject.server.Model.Message.ConsumerServerMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

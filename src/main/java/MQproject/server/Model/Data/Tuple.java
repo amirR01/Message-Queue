@@ -1,4 +1,4 @@
-package MQproject.server.Model.data;
+package MQproject.server.Model.Data;
 
 
 import java.util.Objects;

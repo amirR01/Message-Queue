@@ -1,11 +1,11 @@
-package MQproject.server.Model.message;
+package MQproject.server.Model.Message;
 
 import java.util.ArrayList;
 
 public class BrokerServerMessageAboutBrokers {
     public ArrayList<BrokerServerSmallerMessageAboutBrokers> messages = new ArrayList<>();
 
-    public static class BrokerServerSmallerMessageAboutBrokers extends MQproject.server.Model.message.BaseMessage {
+    public static class BrokerServerSmallerMessageAboutBrokers extends MQproject.server.Model.Message.BaseMessage {
         public Integer brokerId;
         public String brokerIp;
         public Integer brokerPort;

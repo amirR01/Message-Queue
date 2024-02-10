@@ -1,4 +1,4 @@
-package MQproject.server.Model.message;
+package MQproject.server.Model.Message;
 
 import java.util.*;
 

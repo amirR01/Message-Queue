@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.ConsumerServerMessage;
-import MQproject.server.Model.message.ProducerServerMessage;
+import MQproject.server.Model.Message.ProducerServerMessage;
 
 @RestController
 @RequestMapping("/api/server-producer")

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 import MQproject.server.Interface.ServerService;
-import MQproject.server.Model.message.BrokerServerMessageAboutBrokers;
+import MQproject.server.Model.Message.BrokerServerMessageAboutBrokers;
 
 
 @RestController
