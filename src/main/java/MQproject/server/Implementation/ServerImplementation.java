@@ -2,9 +2,13 @@ package MQproject.server.Implementation;
 
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
+import MQproject.server.Model.Data.LoadBalancerResponse;
+import MQproject.server.Model.Data.LoadBalancerResponseAction;
 import MQproject.server.Model.Data.Tuple;
 import MQproject.server.Model.Message.*;
 import MQproject.server.Model.Message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
+import MQproject.server.Implementation.BrokerLoadBalancerImpl;
+import MQproject.server.Implementation.ConsumerLoadBalancerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,6 +24,13 @@ public class ServerImplementation implements ServerService {
     // @Autowired
     // private RoundRobinLoadBalancer consumerLoadBalancer;
 
+    @Autowired
+    private BrokerLoadBalancerImpl brokerLoadBalancer; 
+
+    @Autowired
+    private ConsumerLoadBalancerImpl consumerLoadBalancerImpl;
+
+
     private final RestTemplate restTemplate = new RestTemplate();
 
     private HashMap<Integer, Broker> brokersIds = new HashMap<>();
@@ -33,12 +44,20 @@ public class ServerImplementation implements ServerService {
     private HashMap<Integer, ArrayList<Integer>> producerIdToPartitions;
     public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
 
+    // TODO: put these in application properties
+    // number of brokers (Test)
+    public int brokersNumber = 3;
+
+    public int consumersNumber = 0;
+
+    public int producersNumber = 0;
+
+
+
 
     public static void main(String[] args) {
         ServerImplementation s = new ServerImplementation();
-        System.out.println("hello");
         s.runServer();
-        System.out.println("after hello");
     }
 
 
@@ -59,6 +78,19 @@ public class ServerImplementation implements ServerService {
         );
     }
 
+    // can be used in scaling up system 
+    public void addPartitionUtil(Integer partitionId) {          
+
+        ArrayList<LoadBalancerResponse> responses = 
+        brokerLoadBalancer.balanceOnPartitionBirth(brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, partitionId);
+        
+        for (LoadBalancerResponse response : responses) {
+            if (response.getAction() == LoadBalancerResponseAction.ADD_PARTITION) {
+                addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+            }
+        } 
+    }
+
 
     public void removePartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
 
@@ -76,12 +108,25 @@ public class ServerImplementation implements ServerService {
                 message,
                 BrokerServerMessageAboutPartitions.class
         );
+
+        brokerLoadBalancer.balanceOnPartitionDeath(brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, partitionId);
+    }
+    
+    // can be used in scaling down system
+    public void removePartitionUtil(Integer partitionId) {         
+
+        ArrayList<LoadBalancerResponse> responses = 
+        brokerLoadBalancer.balanceOnPartitionDeath(brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, partitionId);
+        
+        for (LoadBalancerResponse response : responses) {
+            if (response.getAction() == LoadBalancerResponseAction.REMOVE_PARTITION) {
+                removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+            }
+        } 
     }
 
     public void movePartitionAPI(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId, boolean isReplica) {
-        // call approperiate function in load balancer
-        //LoadBalancerResponse response = callLoadBalancer();
-        // leader partition move
+        
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
@@ -135,6 +180,12 @@ public class ServerImplementation implements ServerService {
     public void runServer() {
 //        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 //        scheduler.scheduleAtFixedRate(this::checkBrokersStatus, 0, 60, TimeUnit.SECONDS);
+
+        for (int i = 0; i < brokersNumber; i++) {
+            // TODO: call onBrokerBirth after Adding new brokers
+        }
+
+         
     }
 
     @Scheduled(fixedRate = 60000)
@@ -274,14 +325,22 @@ public class ServerImplementation implements ServerService {
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_BROKER ||
                     brokersIds.get(smallerMessage.brokerId) == null) {                      // for dead brokers
-                smallerMessage.brokerId = generateToken();
-                brokersIds.put(smallerMessage.brokerId, new Broker(smallerMessage.brokerIp, smallerMessage.brokerPort, smallerMessage.brokerId));
-                // call load balancer
+                        smallerMessage.brokerId = addNewBrokerUtil(smallerMessage.brokerIp, smallerMessage.brokerPort);
             } else {
                 // set last seen time to current time
             }
         }
         return message;
+    }
+
+    public int addNewBrokerUtil(String brokerIp, int brokerPort) {
+        int brokerId = generateToken();
+        brokersIds.put(brokerId, new Broker(brokerIp, brokerPort, brokerId));
+        brokersNumber++;
+        
+        // TODO: call load balancer function
+        
+        return brokerId;  // on success
     }
 
     @Override
@@ -290,14 +349,24 @@ public class ServerImplementation implements ServerService {
             if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER ||
                     consumerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead consumers
 
-                smallerMessage.ClientId = generateToken();
-                ArrayList<Integer> clientPartitions = new ArrayList<>();
-                consumerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
+                smallerMessage.ClientId = addNewConsumerUtil();
+
             } else {
-                // nothing
+                // TODO: update lastTime in each broker register calls
             }
         }
         return message;
+    }
+
+    public int addNewConsumerUtil() {
+        int clientId = generateToken();
+        ArrayList<Integer> clientPartitions = new ArrayList<>();
+        consumerIdToPartitions.put(clientId, clientPartitions);
+        consumersNumber++;
+
+        // TODO: call load balancer function
+
+        return clientId;
     }
 
 
@@ -307,14 +376,24 @@ public class ServerImplementation implements ServerService {
             if (smallerMessage.messageType == MessageType.REGISTER_PRODUCER ||
                     producerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead producers
 
-                smallerMessage.ClientId = generateToken();
-                ArrayList<Integer> clientPartitions = new ArrayList<>();
-                producerIdToPartitions.put(smallerMessage.ClientId, clientPartitions);
+                smallerMessage.ClientId = addNewProducerUtil();
+
             } else {
-                // nothing
+                // TODO: update lastTime in each broker register calls
             }
         }
         return message;
+    }
+
+    public int addNewProducerUtil() {
+        int clientId = generateToken();
+        ArrayList<Integer> clientPartitions = new ArrayList<>();
+        producerIdToPartitions.put(clientId, clientPartitions);
+        producersNumber++;
+
+        // TODO: call load balancer function
+
+        return clientId;
     }
 
 

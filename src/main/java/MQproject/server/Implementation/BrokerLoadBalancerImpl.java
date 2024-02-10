@@ -108,6 +108,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
                 responses.add(new LoadBalancerResponse(
                         mostReplicaLoadedBrokerId,
                         replicaId,
+                        true,
                         LoadBalancerResponseAction.REMOVE_PARTITION
                 ));
             }
@@ -141,6 +142,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
         responses.add(new LoadBalancerResponse(
                 leastLeaderLoadedBrokerId,
                 bornPartitionId,
+                false,
                 LoadBalancerResponseAction.ADD_PARTITION
         ));
 
@@ -162,7 +164,8 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
                 leastLeaderLoadedBrokerId,
                 leastReplicaLoadedBrokerId,
                 bornPartitionId,
-                LoadBalancerResponseAction.ADD_PARTITION
+                true,
+                LoadBalancerResponseAction.CLONE_PARTITION
         ));
         return responses;
     }
@@ -205,7 +208,6 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
 
         return brokerIds;
     }
-
     private HashMap<Integer, Integer> getPartitionIdToBroker(HashMap<Integer, ArrayList<Integer>> brokerIdToPartitions) {
         HashMap<Integer, Integer> partitionIdToBroker = new HashMap<>();
 
@@ -217,17 +219,5 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
             }
         }
         return partitionIdToBroker;
-    }
-
-    private void addPartition() {
-    }
-    private void removePartition() {
-
-    }
-    private void clonePartition() {
-
-    }
-    private void movePartition() {
-
     }
 }

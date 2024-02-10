@@ -7,8 +7,6 @@ import MQproject.server.Model.Message.ProducerServerMessage;
 
 public interface ServerService {
 
-    // number of brokers (Test)
-    public int brokersNumber = 10;
 
     public void runServer();
 

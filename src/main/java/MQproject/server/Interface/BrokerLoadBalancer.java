@@ -23,4 +23,5 @@ public interface BrokerLoadBalancer {
     public ArrayList<LoadBalancerResponse> balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,
                                         HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions,
                                         Integer deadPartitionId);
+                       
 }
