@@ -12,8 +12,56 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
     public ArrayList<LoadBalancerResponse> balanceOnBrokerDeath(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,
                                                                 HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions,
                                                                 Integer deadBrokerId) {
-        //TODO
-        return null;
+        ArrayList<LoadBalancerResponse> responses = new ArrayList<>();
+
+        ArrayList<Integer> deadBrokerLeaders = brokerIdToLeaderPartitions.remove(deadBrokerId);
+        ArrayList<Integer> deadBrokerReplicas = brokerIdToReplicaPartitions.remove(deadBrokerId);
+
+        // giving leadership to the replicas of dead leaders
+        HashMap<Integer, Integer> partitionIdToReplicaBroker = getPartitionIdToBroker(brokerIdToReplicaPartitions);
+
+        for (int leaderId : deadBrokerLeaders) {
+            int replicaBrokerId = partitionIdToReplicaBroker.get(leaderId);
+            responses.add(new LoadBalancerResponse(
+                    replicaBrokerId,
+                    leaderId,
+                    LoadBalancerResponseAction.BECOME_PARTITION_LEADER
+            ));
+            // remove id from brokerIdToReplicaPartitions and add it to brokerIdToLeaderPartitions
+            brokerIdToReplicaPartitions.get(replicaBrokerId).remove(Integer.valueOf(leaderId));
+            ArrayList<Integer> leaderPartitions = brokerIdToLeaderPartitions.get(replicaBrokerId);
+            leaderPartitions.add(leaderId);
+            brokerIdToLeaderPartitions.put(replicaBrokerId, leaderPartitions);
+        }
+
+        // distributing replicas
+        HashMap<Integer, Integer> partitionIdToLeaderBroker = getPartitionIdToBroker(brokerIdToLeaderPartitions);
+
+        ArrayList<Integer> missingReplicas = new ArrayList<>();
+        missingReplicas.addAll(deadBrokerReplicas);
+        missingReplicas.addAll(deadBrokerLeaders);
+
+        // distribute replicas in a greedy way: give as much as possible to the broker which can accept the most
+        ArrayList<Integer> sortedBrokers = sortBrokersByLoad(brokerIdToReplicaPartitions, false);
+        for (int replicaId : missingReplicas) {
+            int leaderBrokerId = partitionIdToLeaderBroker.get(replicaId);
+            int targetReplicaBrokerId = -1;
+            for (int brokerId : sortedBrokers) {
+                if (brokerId != leaderBrokerId) {
+                    targetReplicaBrokerId = brokerId;
+                    break;
+                }
+            }
+            responses.add(new LoadBalancerResponse(
+                    leaderBrokerId,
+                    targetReplicaBrokerId,
+                    replicaId,
+                    LoadBalancerResponseAction.CLONE_PARTITION
+            ));
+            brokerIdToReplicaPartitions.get(targetReplicaBrokerId).add(replicaId);
+        }
+
+        return responses;
     }
 
     public ArrayList<LoadBalancerResponse> balanceOnBrokerBirth(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,
@@ -41,15 +89,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
         }
 
         // replicas
-        HashMap<Integer, Integer> partitionIdToLeaderBroker = new HashMap<>();
-
-        for (Map.Entry<Integer, ArrayList<Integer>> entry : brokerIdToLeaderPartitions.entrySet()) {
-            int brokerId = entry.getKey();
-            ArrayList<Integer> leaderIds = entry.getValue();
-            for (Integer leaderId : leaderIds) {
-                partitionIdToLeaderBroker.put(leaderId, brokerId);
-            }
-        }
+        HashMap<Integer, Integer> partitionIdToLeaderBroker = getPartitionIdToBroker(brokerIdToLeaderPartitions);
 
         int mostReplicaLoadedBrokerId = getMostLoadedBroker(brokerIdToReplicaPartitions);
         ArrayList<Integer> mostReplicaLoadedBrokerPartitions = brokerIdToReplicaPartitions.get(mostReplicaLoadedBrokerId);
@@ -166,6 +206,18 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
         return brokerIds;
     }
 
+    private HashMap<Integer, Integer> getPartitionIdToBroker(HashMap<Integer, ArrayList<Integer>> brokerIdToPartitions) {
+        HashMap<Integer, Integer> partitionIdToBroker = new HashMap<>();
+
+        for (Map.Entry<Integer, ArrayList<Integer>> entry : brokerIdToPartitions.entrySet()) {
+            int brokerId = entry.getKey();
+            ArrayList<Integer> leaderIds = entry.getValue();
+            for (Integer leaderId : leaderIds) {
+                partitionIdToBroker.put(leaderId, brokerId);
+            }
+        }
+        return partitionIdToBroker;
+    }
 
     private void addPartition() {
     }
