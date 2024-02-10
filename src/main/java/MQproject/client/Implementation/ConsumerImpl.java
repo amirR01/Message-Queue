@@ -36,7 +36,7 @@ public class ConsumerImpl implements Consumer {
     public String myIp;
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
-    @Value("MQproject.client.consumer")
+    @Value("${MQproject.client.consumer}")
     public Boolean isConsumer;
 
     @PostConstruct

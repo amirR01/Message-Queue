@@ -29,7 +29,7 @@ public class ProducerImpl implements Producer {
     public String myIp;
     @Value("${MQproject.client.my.port}")
     public Integer myPort;
-    @Value("MQproject.client.producer")
+    @Value("${MQproject.client.producer}")
     public Boolean isProducer;
 
     private RestOperations restTemplate;
@@ -88,6 +88,7 @@ public class ProducerImpl implements Producer {
     }
 
     private void registerToServer() {
+
         ClientServerMessage bigMessage =
                 new ClientServerMessage();
 

@@ -20,10 +20,10 @@ public class CommandLineInterfaceInImpl implements CommandLineInterfaceIn {
     public Consumer consumer;
 
 
-    @Value("MQproject.client.consumer")
+    @Value("${MQproject.client.consumer}")
     public Boolean isConsumer;
 
-    @Value("MQproject.client.producer")
+    @Value("${MQproject.client.producer}")
     public Boolean isProducer;
     @Override
     public String getCommand() {
