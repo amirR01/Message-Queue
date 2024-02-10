@@ -93,6 +93,12 @@ public class ConsumerImpl implements Consumer {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    public void subscribe_for_the_python_client() {
+        getBrokerAddress();
+    }
+    public void pull_for_the_python_client() {
+        consumeMessage(addressMap.keySet().iterator().next());
+    }
     @Override
     public void subscribe() {
         getBrokerAddress();
