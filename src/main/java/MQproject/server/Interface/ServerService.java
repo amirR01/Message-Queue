@@ -26,5 +26,6 @@ public interface ServerService {
     public BrokerServerMessageAboutBrokers listAllBrokers();
 
     public void informBrokerAboutConsumer(Integer brokerId, Integer consumerId);
+    
     public void informBrokerAboutProducer(Integer brokerId, Integer producerId);
 }

@@ -1,6 +1,5 @@
 package MQproject.server.Model.Data;
 
-import MQproject.server.Model.Data.LoadBalancerResponseAction;
 
 public class LoadBalancerResponse {
     Integer sourceBrokerId;
@@ -22,7 +21,7 @@ public class LoadBalancerResponse {
         this.isReplica = isReplica;
         this.action = action;
     }
-    
+
     public Integer getSourceBrokerId() {
         return sourceBrokerId;
     }

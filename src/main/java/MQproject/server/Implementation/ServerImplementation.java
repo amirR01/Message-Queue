@@ -2,6 +2,8 @@ package MQproject.server.Implementation;
 
 import MQproject.server.Interface.ServerService;
 import MQproject.server.Model.Broker;
+import MQproject.server.Model.Client;
+import MQproject.server.Model.ClientType;
 import MQproject.server.Model.Data.LoadBalancerResponse;
 import MQproject.server.Model.Data.LoadBalancerResponseAction;
 import MQproject.server.Model.Data.Tuple;
@@ -23,9 +25,10 @@ public class ServerImplementation implements ServerService {
     private BrokerLoadBalancerImpl brokerLoadBalancer;
 
     @Autowired
-    private ConsumerLoadBalancerImpl consumerLoadBalancerImpl;
+    private ConsumerLoadBalancerImpl consumerLoadBalancer;
 
-    private final List<Integer> allConsumers = new ArrayList<>();
+    private final HashMap<Integer, Client> allConsumersIds = new HashMap<>();
+    private final HashMap<Integer, Client> allProducersIds = new HashMap<>();
 
     // TODO: check for those who are responsible for consuming that they are alive
     private final Map<Integer, Long> havingPartitionsConsumersTime = new HashMap<>();
@@ -47,11 +50,11 @@ public class ServerImplementation implements ServerService {
 
     // TODO: put these in application properties
     // number of brokers (Test)
-    public int brokersNumber = 3;
+    // public int brokersNumber = 3;
 
-    public int consumersNumber = 0;
+    // public int consumersNumber = 0;
 
-    public int producersNumber = 0;
+    // public int producersNumber = 0;
 
 
     public static void main(String[] args) {
@@ -98,7 +101,7 @@ public class ServerImplementation implements ServerService {
             }
         }
         // consumer management.
-        Integer consumerId = consumerLoadBalancerImpl.balanceOnPartitionBirth(consumerIdToPartitions, partitionId);
+        Integer consumerId = consumerLoadBalancer.balanceOnPartitionBirth(consumerIdToPartitions, partitionId);
         Integer brokerId = findThisPartitionBroker(partitionId);
         informBrokerAboutConsumer(brokerId, consumerId);
         // producer management.
@@ -256,7 +259,7 @@ public class ServerImplementation implements ServerService {
         if (smallerMessage.messageType == MessageType.CONSUME_MESSAGE) {
             // TODO: check the constraint
             if (consumerIdToPartitions.get(smallerMessage.clientId) == null) {
-                consumerLoadBalancerImpl.balanceOnConsumerBirth(
+                consumerLoadBalancer.balanceOnConsumerBirth(
                         consumerIdToPartitions, smallerMessage.clientId);
             }
             List<Integer> partitions = consumerIdToPartitions.get(smallerMessage.clientId);
@@ -287,7 +290,7 @@ public class ServerImplementation implements ServerService {
         throw new IllegalArgumentException("Partition not found");
     }
 
-}
+
 
 
     @Override
@@ -344,7 +347,8 @@ public class ServerImplementation implements ServerService {
 
             } else {
                 // set last seen time to current time
-                // TODO: update lastTime in each broker register calls
+                Broker broker = brokersIds.get(smallerMessage.brokerId);
+                broker.updateLastSeenTime();
             }
         }
         return message;
@@ -352,20 +356,34 @@ public class ServerImplementation implements ServerService {
 
     private void loadBalanceAsynclyAddingNewBroker(Integer brokerId) {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            brokerLoadBalancer.balanceOnBrokerBirth(
-                    brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);
             // TODO: Do the needed actions.
-
-
+            ArrayList<LoadBalancerResponse> responses =
+            brokerLoadBalancer.balanceOnBrokerBirth(
+                brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);            // partition management.
+                for (LoadBalancerResponse response : responses) {
+                    switch (response.getAction()) {
+                        case MOVE_PARTITION:
+                            addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                            break;
+                        case REMOVE_PARTITION:
+                            removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                            break;
+                        case CLONE_PARTITION:
+                            clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                            break;
+                        default:
+                            // Do nothing
+                            break;
+                    }
+                }
         });
     }
 
     public int addNewBrokerUtil(String brokerIp, int brokerPort) {
         int brokerId = generateToken();
         brokersIds.put(brokerId, new Broker(brokerIp, brokerPort, brokerId));
-        brokersNumber++;
 
-        // TODO: call load balancer function
+        // TODO: What to add here?
         // new broker with previous partitions
         // new broker with no partitions
 
@@ -379,19 +397,25 @@ public class ServerImplementation implements ServerService {
             if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER ||
                     consumerIdToPartitions.get(smallerMessage.clientId) == null) {          // for dead consumers
                 smallerMessage.clientId = addNewConsumerUtil();
-
+                loadBalanceAsynclyAddingNewConsumer(smallerMessage.clientId);
+            } else {
+                allConsumersIds.get(smallerMessage.clientId).updateLastSeenTime();
             }
         }
         return message;
     }
 
+    private void loadBalanceAsynclyAddingNewConsumer(Integer clientId) {
+        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            
+            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions, clientId);           
+        });
+    }
+
     public int addNewConsumerUtil() {
         int clientId = generateToken();
         ArrayList<Integer> clientPartitions = new ArrayList<>();
-        allConsumers.add(clientId);
-        consumersNumber++;
-
-        // TODO: call load balancer function
+        allProducersIds.put(clientId, new Client(clientId, ClientType.CONSUMER, clientPartitions));
 
         return clientId;
     }
@@ -406,7 +430,7 @@ public class ServerImplementation implements ServerService {
                 smallerMessage.ClientId = addNewProducerUtil();
 
             } else {
-                // TODO: update lastTime in each broker register calls
+                allProducersIds.get(smallerMessage.ClientId).updateLastSeenTime();
             }
         }
         return message;
@@ -416,9 +440,9 @@ public class ServerImplementation implements ServerService {
         int clientId = generateToken();
         ArrayList<Integer> clientPartitions = new ArrayList<>();
         producerIdToPartitions.put(clientId, clientPartitions);
-        producersNumber++;
+        allConsumersIds.put(clientId, new Client(clientId, ClientType.PRODUCER, clientPartitions));
 
-        // TODO: call load balancer function
+        // TODO: check if any load balancer calls needed
 
         return clientId;
     }
