@@ -28,7 +28,7 @@ public class ServerConsumerController {
         return null;
     }
 
-    @PostMapping(value = "/register-consumer", consumes = "application/json")
+    @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<ConsumerServerMessage> registerConsumer(@RequestBody ConsumerServerMessage message) {
         ConsumerServerMessage response = serverService.registerConsumer(message);
         return ResponseEntity.ok(response);

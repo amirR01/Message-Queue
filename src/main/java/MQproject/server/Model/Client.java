@@ -7,13 +7,11 @@ public class Client {
     private int id;
     private long lastSeenTime; 
     private ClientType clientType;
-    private ArrayList<Integer> partitions;
 
 
-    public Client(int id, ClientType clientType, ArrayList<Integer> partitions) {
+    public Client(int id, ClientType clientType) {
         this.id = id;
         this.clientType = clientType;
-        this.partitions = partitions;
         updateLastSeenTime();
     }
 
@@ -29,9 +27,6 @@ public class Client {
         return clientType;
     }
 
-    public ArrayList<Integer> getPartitions() {
-        return partitions;
-    }
 
     public long getLastSeenTime() {
         return lastSeenTime;

@@ -14,8 +14,8 @@ public class ConsumerServerMessage {
         public Integer partitionId;     // null
         // TODO: sync ConsumerServerSmallerMessage in client and broker too
 
-        public ConsumerServerSmallerMessage(Integer ClientId, Integer brokerId, String brokerIp, int brokerPort, int partitionId, MessageType messageType) {
-            this.clientId = ClientId;
+        public ConsumerServerSmallerMessage(Integer clientId, Integer brokerId, String brokerIp, int brokerPort, int partitionId, MessageType messageType) {
+            this.clientId = clientId;
             this.brokerId = brokerId;
             this.brokerIp = brokerIp;
             this.brokerPort = brokerPort;

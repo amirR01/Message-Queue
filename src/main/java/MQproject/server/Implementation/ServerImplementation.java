@@ -204,8 +204,8 @@ public class ServerImplementation implements ServerService {
 //            // TODO: call onBrokerBirth after Adding new brokers
 //        }
     }
-
-    @Scheduled(fixedRate = 60000)
+// TODO:
+//    @Scheduled(fixedRate = 60000)
     private void checkBrokersStatus() {
         long currentTime = System.currentTimeMillis();
         List<Integer> inactiveBrokers = new ArrayList<>();
@@ -302,14 +302,16 @@ public class ServerImplementation implements ServerService {
     public ConsumerServerMessage subscribe(ConsumerServerMessage message) {
         ConsumerServerMessage bigResponse = new ConsumerServerMessage();
         ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage = message.messages.get(0);
-        if (smallerMessage.messageType == MessageType.CONSUME_MESSAGE) {
+        if (smallerMessage.messageType == MessageType.ASSIGN_BROKER) {
             // TODO: check the constraint
             if (consumerIdToPartitions.get(smallerMessage.clientId) == null) {
+                allConsumersIds.put(smallerMessage.clientId , new Client(smallerMessage.clientId, ClientType.CONSUMER));
                 consumerLoadBalancer.balanceOnConsumerBirth(
                         consumerIdToPartitions,
-                        (List<Integer>) keyToPartition.values()
+                        new ArrayList<>(keyToPartition.values())
                         , smallerMessage.clientId);
             }
+            allConsumersIds.get(smallerMessage.clientId).updateLastSeenTime();
             List<Integer> partitions = consumerIdToPartitions.get(smallerMessage.clientId);
             for (Integer partition : partitions) {
                 // where is this partition?
@@ -317,12 +319,9 @@ public class ServerImplementation implements ServerService {
                 Broker broker = brokersIds.get(brokerId);
                 bigResponse.messages.add(
                         new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                                smallerMessage.clientId, broker.getId(), broker.getIp(), broker.getPort(), partition, MessageType.CONSUME_MESSAGE));
+                                smallerMessage.clientId, broker.getId(), broker.getIp(), broker.getPort(), partition, MessageType.ASSIGN_BROKER));
+                informBrokerAboutConsumer(brokerId, smallerMessage.clientId);
             }
-            // Inform brokers that a new subscriber added
-            // put a hashmap here between subscriber id and it's partitions
-            informBrokerAboutConsumer(smallerMessage.brokerId, smallerMessage.clientId);
-            havingPartitionsConsumersTime.put(smallerMessage.clientId, System.currentTimeMillis());
         }
         return bigResponse;
     }
@@ -345,9 +344,9 @@ public class ServerImplementation implements ServerService {
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.GET_PARTITION) {
                 if (!keyToPartition.containsKey(smallerMessage.key)) {
-                    addPartitionUtil(smallerMessage.ClientId, smallerMessage.key);
+                    addPartitionUtil(smallerMessage.clientId, smallerMessage.key);
                 }
-                int clientId = smallerMessage.ClientId;
+                int clientId = smallerMessage.clientId;
                 int partitionId = keyToPartition.get(smallerMessage.key);
 
                 addPartitionToProducer(clientId, partitionId);
@@ -358,7 +357,7 @@ public class ServerImplementation implements ServerService {
                 smallerMessage.brokerId = toAssignedBroker.getId();
                 smallerMessage.brokerPort = toAssignedBroker.getPort();
                 smallerMessage.brokerIp = toAssignedBroker.getIp();
-                smallerMessage.PartitionId = partitionId;
+                smallerMessage.partitionId = partitionId;
             }
         }
         return message;
@@ -418,44 +417,25 @@ public class ServerImplementation implements ServerService {
     @Override
     public ConsumerServerMessage registerConsumer(ConsumerServerMessage message) {
         for (ConsumerServerMessage.ConsumerServerSmallerMessage smallerMessage : message.messages) {
-            if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER ||
-                    consumerIdToPartitions.get(smallerMessage.clientId) == null) {          // for dead consumers
-                smallerMessage.clientId = addNewConsumerUtil();
-                loadBalanceAsynclyAddingNewConsumer(smallerMessage.clientId);
+            if (smallerMessage.messageType == MessageType.REGISTER_CONSUMER) {          // for dead consumers
+                smallerMessage.clientId = generateToken();
+
             } else {
-                allConsumersIds.get(smallerMessage.clientId).updateLastSeenTime();
             }
         }
         return message;
     }
 
-    private void loadBalanceAsynclyAddingNewConsumer(Integer clientId) {
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-
-            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions,
-                    (List<Integer>) keyToPartition.values(), clientId);
-        });
-    }
-
-    public int addNewConsumerUtil() {
-        int clientId = generateToken();
-        ArrayList<Integer> clientPartitions = new ArrayList<>();
-        allProducersIds.put(clientId, new Client(clientId, ClientType.CONSUMER, clientPartitions));
-
-        return clientId;
-    }
-
-
     @Override
     public ProducerServerMessage registerProducer(ProducerServerMessage message) {
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_PRODUCER ||
-                    producerIdToPartitions.get(smallerMessage.ClientId) == null) {          // for dead producers
+                    producerIdToPartitions.get(smallerMessage.clientId) == null) {          // for dead producers
 
-                smallerMessage.ClientId = addNewProducerUtil();
+                smallerMessage.clientId = addNewProducerUtil();
 
             } else {
-                allProducersIds.get(smallerMessage.ClientId).updateLastSeenTime();
+                allProducersIds.get(smallerMessage.clientId).updateLastSeenTime();
             }
         }
         return message;
@@ -465,8 +445,6 @@ public class ServerImplementation implements ServerService {
         int clientId = generateToken();
         ArrayList<Integer> clientPartitions = new ArrayList<>();
         producerIdToPartitions.put(clientId, clientPartitions);
-        allConsumersIds.put(clientId, new Client(clientId, ClientType.PRODUCER, clientPartitions));
-
         // TODO: check if any load balancer calls needed
 
         return clientId;

@@ -15,16 +15,18 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         // Remove partitions of dead consumer
         ArrayList<Integer> partitionsToRemove = consumerIdToPartitions.get(deadConsumerId);
         consumerIdToPartitions.remove(deadConsumerId);
+        if (!consumerIdToPartitions.isEmpty()) {
 
-        // Find consumer with the least partitions
-        int leastLoadedConsumerId = getLeastLoadedConsumer(consumerIdToPartitions);
+            // Find consumer with the least partitions
+            int leastLoadedConsumerId = getLeastLoadedConsumer(consumerIdToPartitions);
 
-        // Add partitions of dead consumer to least loaded consumer
-        ArrayList<Integer> leastLoadedConsumerPartitions = consumerIdToPartitions.get(leastLoadedConsumerId);
-        leastLoadedConsumerPartitions.addAll(partitionsToRemove);
+            // Add partitions of dead consumer to least loaded consumer
+            ArrayList<Integer> leastLoadedConsumerPartitions = consumerIdToPartitions.get(leastLoadedConsumerId);
+            leastLoadedConsumerPartitions.addAll(partitionsToRemove);
+        }
     }
 
-    public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, List<Integer> allPartitions, Integer bornConsumerId) {
+    public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, ArrayList<Integer> allPartitions, Integer bornConsumerId) {
         List<Integer> partitionsToMove = new ArrayList<>();
         if (consumerIdToPartitions.isEmpty()) {
             partitionsToMove = allPartitions;

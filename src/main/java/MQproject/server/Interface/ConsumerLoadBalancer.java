@@ -12,7 +12,7 @@ import java.util.List;
 public interface ConsumerLoadBalancer {
     public void balanceOnConsumerDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadConsumerId);
     public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions,
-                                       List<Integer> allPartitions ,Integer bornConsumerId);
+                                       ArrayList<Integer> allPartitions ,Integer bornConsumerId);
     public void balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornPartitionId);
     public Integer balanceOnPartitionBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadPartitionId);
 }
