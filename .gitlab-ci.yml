@@ -57,7 +57,7 @@ build:       # This job runs in the build stage, which runs first.
 
 build-docker:
   stage: build
-  image: docker:19.03.12
+  image: docker:24.0.5
   needs:
     - build
   only:
