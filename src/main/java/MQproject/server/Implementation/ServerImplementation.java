@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
+
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +49,70 @@ public class ServerImplementation implements ServerService {
     private HashMap<Integer, ArrayList<Integer>> producerIdToPartitions = new HashMap<>();
     public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
     public HashMap<String, Integer> keyToPartition = new HashMap<>();
+
+
+
+    // Monitoring Section
+    private static final Counter requests = Counter.build()
+        .name("requests_total")
+        .help("Total number of requests.")
+        .register();
+
+    private static final Counter successfulRequests = Counter.build()
+        .name("successful_requests_total")
+        .help("Total number of successful requests.")
+        .register();
+    
+    private static final Counter failedRequests = Counter.build()
+        .name("failed_requests_total")
+        .help("Total number of failed requests.")
+        .register();
+
+    private static final Gauge activeConsumers = Gauge.build()
+        .name("active_consumers")
+        .help("Number of active consumers.")
+        .register();
+
+    private static final Gauge activeBrokers = Gauge.build()
+        .name("active_brokers")
+        .help("Number of active brokers.")
+        .register();
+    
+    private static final Gauge partitionsAdded = Gauge.build()
+        .name("partitions_added_total")
+        .help("Total number of partitions added.")
+        .register();
+    
+    private static final Gauge registeredConsumers = Gauge.build()
+        .name("registered_consumers")
+        .help("Number of consumers registered.")
+        .register();
+    
+    private static final Gauge registeredProducers = Gauge.build()
+        .name("registered_producers")
+        .help("Number of producers registered.")
+        .register();
+    
+    private static final Gauge discUsage = Gauge.build()
+        .name("disc_usage")
+        .help("Disc Usage by total brokers.")
+        .register();
+
+    private int checkDiscUsage() {
+
+        return 0; // on safe disc usage
+
+        // otherwise return -1
+    }
+
+    private void updateActiveConsumers() {
+        activeConsumers.set(allConsumersIds.size());
+    }
+
+    private void updateActiveBrokers() {
+        activeBrokers.set(brokersIds.size());
+    }
+
 
 
     public static void main(String[] args) {
