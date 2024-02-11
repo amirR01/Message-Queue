@@ -30,6 +30,7 @@ cache:
 variables:
   key: "$CI_COMMIT_REF_NAME"
   DEPLOY_SERVER: "156.253.5.245"
+  DEPLOY_USER: "user01"
   COMPOSE_PATH: "/app/broker/docker-compose.yml"
 
 
@@ -56,6 +57,7 @@ build:       # This job runs in the build stage, which runs first.
 
 build-docker:
   stage: build
+  image: docker:19.03.12
   needs:
     - build
   only:
@@ -81,4 +83,4 @@ deploy-job:
     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
-    - ssh root@$DEPLOY_SERVER "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+    - ssh $DEPLOY_USER@$DEPLOY_SERVER "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
