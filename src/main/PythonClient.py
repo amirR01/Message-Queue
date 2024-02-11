@@ -1,5 +1,7 @@
 import requests
 import threading
+import time
+import json
 
 class PythonClient:
     def __init__(self, base_url):
@@ -10,7 +12,8 @@ class PythonClient:
         return response.text
 
     def push(self, key, message):
-        response = requests.post(f'{self.base_url}/push', data={'key': key, 'message': message})
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(f'{self.base_url}/push', data=json.dumps({'key': key, 'message': message}), headers = headers)
         return response.text
 
     def subscribe(self, f):
@@ -19,6 +22,7 @@ class PythonClient:
         if response.text == "OK":
             i = 0
             while True:
+                time.sleep(5)
                 i += 1
                 response = requests.post(f'{self.base_url}/pull-as-subscriber')
                 thread = threading.Thread(target=f, args=(response.text,))

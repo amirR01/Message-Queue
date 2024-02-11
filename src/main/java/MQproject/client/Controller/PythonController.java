@@ -27,7 +27,7 @@ public class PythonController {
         return data;
     }
 
-    @PostMapping(value = "/push",consumes = "application/json")
+    @PostMapping(value = "/push")
     public String pushToPython(@RequestBody PythonPushMessage pm) {
         String done = producer.produceMessage(pm.key, pm.message);
         return "Pushed to Queue";

@@ -26,8 +26,6 @@ public class ClientShellComponent {
     @ShellMethod(key = "produce")
     public void produce(@ShellOption String key,
                         @ShellOption String value) {
-        System.out.println(key);
-        System.out.println(value);
         if (isProducer){
             producer.produceMessage(key, value);
         }
