@@ -27,7 +27,7 @@ public class PythonController {
 
     @PostMapping("/push")
     public String pushToPython(String key, String message) {
-        producer.produceMessage(key, message);
+        String done = producer.produceMessage(key, message);
         return "Pushed to Queue";
     }
 

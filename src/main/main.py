@@ -3,7 +3,7 @@ from PythonClient import PythonClient
 producer = True
 consumer = False
 def main():
-    client = PythonClient('http://localhost:8080')  # replace with your base_url
+    client = PythonClient('http://localhost:8080')
     while True:
         command = input('Enter command: ')
         if command == 'exit':

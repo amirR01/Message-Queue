@@ -52,7 +52,7 @@ public class ProducerImpl implements Producer {
     }
 
     @Override
-    public void produceMessage(String key, String message) {
+    public String produceMessage(String key, String message) {
         // get address if not valid
         // send the message to the broker
         if (!addressMap.containsKey(key)) {
@@ -85,6 +85,7 @@ public class ProducerImpl implements Producer {
                 bigMessage,
                 BrokerClientMessage.class
         );
+        return "done";
     }
 
     private void registerToServer() {
