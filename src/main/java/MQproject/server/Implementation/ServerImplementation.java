@@ -8,13 +8,13 @@ import MQproject.server.Model.Data.LoadBalancerResponse;
 import MQproject.server.Model.Data.Tuple;
 import MQproject.server.Model.Message.*;
 import MQproject.server.Model.Message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +28,23 @@ public class ServerImplementation implements ServerService {
 
     @Autowired
     private ConsumerLoadBalancerImpl consumerLoadBalancer;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
+
+    @PostConstruct
+    public void init() {
+        try {
+            createMetrics();
+        } catch (Exception e) {
+
+        }
+    }
+
+    private void createMetrics() {
+        registerBrokerApi = meterRegistry.counter("registerBrokerApi");
+        meterRegistry.getMeters();
+    }
 
     private final HashMap<Integer, Client> allConsumersIds = new HashMap<>();
     private final HashMap<Integer, Client> allProducersIds = new HashMap<>();
@@ -51,52 +68,52 @@ public class ServerImplementation implements ServerService {
     public HashMap<String, Integer> keyToPartition = new HashMap<>();
 
 
+//    // Monitoring Section
+//    private final Counter requests = Counter.build()
+//            .name("requests_total")
+//            .help("Total number of requests.")
+//            .register();
 
-    // Monitoring Section
-    private static final Counter requests = Counter.build()
-        .name("requests_total")
-        .help("Total number of requests.")
-        .register();
+    private Counter registerBrokerApi;
+//    private final Counter successfulRequests = Counter.build()
+//            .name("successful_requests_total")
+//            .help("Total number of successful requests.")
+//            .register();
 
-    private static final Counter successfulRequests = Counter.build()    
-        .name("successful_requests_total")
-        .help("Total number of successful requests.")
-        .register();
-    
-    private static final Counter failedRequests = Counter.build()           // put this on exceptions
-        .name("failed_requests_total")
-        .help("Total number of failed requests.")
-        .register();
+//    private final Counter failedRequests = Counter.build()           // put this on exceptions
+//            .name("failed_requests_total")
+//            .help("Total number of failed requests.")
+//            .register();
 
-    private static final Gauge activeConsumers = Gauge.build()
-        .name("active_consumers")
-        .help("Number of active consumers.")
-        .register();
-
-    private static final Gauge activeBrokers = Gauge.build()
-        .name("active_brokers")
-        .help("Number of active brokers.")
-        .register();
-    
-    private static final Gauge partitionsAdded = Gauge.build()
-        .name("partitions_added_total")
-        .help("Total number of partitions added.")
-        .register();
-    
-    private static final Gauge registeredConsumers = Gauge.build()
-        .name("registered_consumers")
-        .help("Number of consumers registered.")
-        .register();
-    
-    private static final Gauge registeredProducers = Gauge.build()
-        .name("registered_producers")
-        .help("Number of producers registered.")
-        .register();
-    
-    private static final Gauge discUsage = Gauge.build()
-        .name("disc_usage")
-        .help("Disc Usage by total brokers.")
-        .register();
+//    private final Gauge activeConsumers = Gauge.build()
+//            .name("active_consumers")
+//            .help("Number of active consumers.")
+//            .register();
+//
+//    private final Gauge activeBrokers = Gauge.build()
+//            .name("active_brokers")
+//            .help("Number of active brokers.")
+//            .register();
+//
+//    private final Gauge partitionsAdded = Gauge.build()
+//            .name("partitions_added_total")
+//            .help("Total number of partitions added.")
+//            .register();
+//
+//    private final Gauge registeredConsumers = Gauge.build()
+//            .name("registered_consumers")
+//            .help("Number of consumers registered.")
+//            .register();
+//
+//    private static final Gauge registeredProducers = Gauge.build()
+//            .name("registered_producers")
+//            .help("Number of producers registered.")
+//            .register();
+//
+//    private static final Gauge discUsage = Gauge.build()
+//            .name("disc_usage")
+//            .help("Disc Usage by total brokers.")
+//            .register();
 
     private int checkDiscUsage() {
 
@@ -104,15 +121,14 @@ public class ServerImplementation implements ServerService {
 
         // otherwise return -1
     }
-
-    private void updateActiveConsumers() {
-        activeConsumers.set(allConsumersIds.size());
-    }
-
-    private void updateActiveBrokers() {
-        activeBrokers.set(brokersIds.size());
-    }
-
+//
+//    private void updateActiveConsumers() {
+//        activeConsumers.set(allConsumersIds.size());
+//    }
+//
+//    private void updateActiveBrokers() {
+//        activeBrokers.set(brokersIds.size());
+//    }
 
 
     public static void main(String[] args) {
@@ -156,7 +172,6 @@ public class ServerImplementation implements ServerService {
 
     private void responseToApiCallMapping(ArrayList<LoadBalancerResponse> responses) {
         for (LoadBalancerResponse response : responses) {
-            requests.inc();
 
             switch (response.getAction()) {
                 case MOVE_PARTITION:
@@ -273,7 +288,8 @@ public class ServerImplementation implements ServerService {
 //            // TODO: call onBrokerBirth after Adding new brokers
 //        }
     }
-// TODO:
+
+    // TODO:
 //    @Scheduled(fixedRate = 60000)
     private void checkBrokersStatus() {
         long currentTime = System.currentTimeMillis();
@@ -374,7 +390,7 @@ public class ServerImplementation implements ServerService {
         if (smallerMessage.messageType == MessageType.ASSIGN_BROKER) {
             // TODO: check the constraint
             if (consumerIdToPartitions.get(smallerMessage.clientId) == null) {
-                allConsumersIds.put(smallerMessage.clientId , new Client(smallerMessage.clientId, ClientType.CONSUMER));
+                allConsumersIds.put(smallerMessage.clientId, new Client(smallerMessage.clientId, ClientType.CONSUMER));
                 consumerLoadBalancer.balanceOnConsumerBirth(
                         consumerIdToPartitions,
                         new ArrayList<>(keyToPartition.values())
@@ -446,7 +462,7 @@ public class ServerImplementation implements ServerService {
             if (smallerMessage.messageType == MessageType.REGISTER_BROKER
                     && (smallerMessage.brokerId == null || !brokersIds.containsKey(smallerMessage.brokerId))) {
                 System.out.println("new broker");
-                System.out.println(smallerMessage.brokerId);
+                registerBrokerApi.increment();
                 // for dead brokers
                 Integer brokerId = addNewBrokerUtil(smallerMessage.brokerIp, smallerMessage.brokerPort);
                 smallerMessage.brokerId = brokerId;
