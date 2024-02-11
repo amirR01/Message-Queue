@@ -65,10 +65,10 @@ build-docker:
     services:
       - name: docker:24.0.5-dind
         alias: thedockerhost
-        variables:
-          DOCKER_HOST: tcp://thedockerhost:2375/
-          DOCKER_DRIVER: overlay2
-          DOCKER_TLS_CERTDIR: ""
+    variables:
+      DOCKER_HOST: tcp://thedockerhost:2375/
+      DOCKER_DRIVER: overlay2
+      DOCKER_TLS_CERTDIR: ""
   needs:
     - build
   only:
