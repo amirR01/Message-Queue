@@ -40,11 +40,11 @@ public class ServerImplementation implements ServerService {
     private Set<Integer> generatedTokens = new HashSet<>();
     private Random random = new Random();
 
-    private HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions;
-    private HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions;
-    private HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions;
+    private HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions = new HashMap<>();
+    private HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions = new HashMap<>();
+    private HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions = new HashMap<>();
 
-    private HashMap<Integer, ArrayList<Integer>> producerIdToPartitions;
+    private HashMap<Integer, ArrayList<Integer>> producerIdToPartitions = new HashMap<>();
     public HashMap<Integer, Tuple<String, Integer>> brokersAddress = new HashMap<>();
     public HashMap<String, Integer> keyToPartition = new HashMap<>();
 
