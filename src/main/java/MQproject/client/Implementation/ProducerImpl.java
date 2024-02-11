@@ -11,9 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.css.Counter;
 
 import java.util.HashMap;
 
@@ -74,7 +72,7 @@ public class ProducerImpl implements Producer {
             ProducerServerMessage.ProducerServerSmallerMessage response =
                     serverCaller.assignPartition(bigMessage).messages.get(0);
 
-            addressMap.put(key, new Tuple<>(response.PartitionId,
+            addressMap.put(key, new Tuple<>(response.partitionId,
                     new Tuple<>(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort))));
         }
 
@@ -113,7 +111,7 @@ public class ProducerImpl implements Producer {
         try {
             ClientServerMessage.ClientServerSmallerMessage response =
                     serverCaller.registerToServerForProducer(bigMessage).messages.get(0);
-            myProducerID = response.ClientId;
+            myProducerID = response.clientId;
         } catch (Exception e) {
             // retry
             e.printStackTrace();

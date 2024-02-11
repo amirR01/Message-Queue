@@ -5,5 +5,5 @@ public interface Producer {
 
     void stopProducer();
 
-    String produceMessage(String message, String key);
+    String produceMessage( String key , String message);
 }

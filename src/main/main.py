@@ -1,9 +1,9 @@
 from PythonClient import PythonClient
-
+import sys
 producer = True
 consumer = False
-def main():
-    client = PythonClient('http://localhost:8080')
+def main(ip,port):
+    client = PythonClient(f'http://{ip}:{port}/api/python')
     while True:
         command = input('Enter command: ')
         if command == 'exit':
@@ -22,4 +22,6 @@ def main():
             print('Unknown command')
 
 if __name__ == '__main__':
-    main()
+    ip = sys.argv[1]
+    port = sys.argv[2]
+    main(ip,port)

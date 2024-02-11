@@ -6,17 +6,17 @@ public class ProducerServerMessage {
     public ArrayList<ProducerServerSmallerMessage> messages = new ArrayList<>();
 
     public static class ProducerServerSmallerMessage extends BaseMessage {
-        public Integer ClientId;
+        public Integer clientId;
         public String key;
-        public Integer PartitionId;
+        public Integer partitionId;
         public Integer brokerId;
         public String brokerIp;
         public Integer brokerPort;
 
-public ProducerServerSmallerMessage(Integer ClientId, String key, Integer PartitionId, Integer brokerId, String brokerIp, Integer brokerPort, MessageType messageType) {
-            this.ClientId = ClientId;
+public ProducerServerSmallerMessage(Integer clientId, String key, Integer partitionId, Integer brokerId, String brokerIp, Integer brokerPort, MessageType messageType) {
+            this.clientId = clientId;
             this.key = key;
-            this.PartitionId = PartitionId;
+            this.partitionId = partitionId;
             this.brokerId = brokerId;
             this.brokerIp = brokerIp;
             this.brokerPort = brokerPort;

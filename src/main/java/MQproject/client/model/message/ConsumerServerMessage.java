@@ -6,14 +6,14 @@ public class ConsumerServerMessage {
     public ArrayList<ConsumerServerSmallerMessage> messages = new ArrayList<>();
 
     public static class ConsumerServerSmallerMessage extends BaseMessage {
-        public Integer ClientId;
+        public Integer clientId;
         public Integer brokerId;
         public String brokerIp;
         public Integer brokerPort;
         
         public String key;
-        public ConsumerServerSmallerMessage(Integer ClientId, String key, Integer brokerId, String brokerIp, Integer brokerPort, MessageType messageType) {
-            this.ClientId = ClientId;
+        public ConsumerServerSmallerMessage(Integer clientId, String key, Integer brokerId, String brokerIp, Integer brokerPort, MessageType messageType) {
+            this.clientId = clientId;
             this.brokerId = brokerId;
             this.brokerIp = brokerIp;
             this.brokerPort = brokerPort;

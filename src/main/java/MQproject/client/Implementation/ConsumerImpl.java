@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+
 @Service
 public class ConsumerImpl implements Consumer {
     private final RestTemplate restTemplate = new RestTemplate();
@@ -28,7 +29,7 @@ public class ConsumerImpl implements Consumer {
     @Autowired
     public CommandLineInterfaceOut commandLineInterface;
 
-    private HashMap<Integer, Tuple<String, Tuple<String, Integer>>> addressMap = new HashMap<>();
+    private HashMap<Integer, Tuple<String, Integer>> addressMap = new HashMap<>();
 
 
     public Integer myConsumerID;
@@ -50,12 +51,12 @@ public class ConsumerImpl implements Consumer {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
         bigMessage.messages.add(
                 new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, null, null, null,  null,MessageType.ASSIGN_BROKER)
+                        myConsumerID, null, null, null, null, MessageType.ASSIGN_BROKER)
         );
         ConsumerServerMessage responses =
                 serverCaller.assignBroker(bigMessage);
         for (ConsumerServerMessage.ConsumerServerSmallerMessage response : responses.messages) {
-            addressMap.put(response.brokerId, new Tuple<>(response.key, new Tuple<>(response.brokerIp, response.brokerPort)));
+            addressMap.put(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort));
         }
     }
 
@@ -63,11 +64,11 @@ public class ConsumerImpl implements Consumer {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
         bigMessage.messages.add(
                 new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, null, null, null,  null,MessageType.PULL_BROKER)
+                        myConsumerID, null, null, null, null, MessageType.PULL_BROKER)
         );
         ConsumerServerMessage.ConsumerServerSmallerMessage response =
                 serverCaller.assignBroker(bigMessage).messages.get(0);
-        addressMap.put(response.brokerId, new Tuple<>(response.key, new Tuple<>(response.brokerIp, response.brokerPort)));
+        addressMap.put(response.brokerId, new Tuple<>(response.brokerIp, response.brokerPort));
         List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(response.brokerId);
 
         return messages.get(0).data;
@@ -79,7 +80,6 @@ public class ConsumerImpl implements Consumer {
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
                         myConsumerID, null, null, MessageType.CONSUME_MESSAGE));
-
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
                 "http://" + addressMap.get(brokerId).getFirst() + ":"
                         + addressMap.get(brokerId).getSecond()
@@ -109,12 +109,12 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public List<String> pull_for_the_python_client() {
-            List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(addressMap.keySet().iterator().next());
-            List<String> messages_data = new ArrayList<>();
-            for (BrokerClientMessage.BrokerClientSmallerMessage message : messages) {
-                messages_data.add(message.data);
-            }
-            return messages_data;
+        List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(addressMap.keySet().iterator().next());
+        List<String> messages_data = new ArrayList<>();
+        for (BrokerClientMessage.BrokerClientSmallerMessage message : messages) {
+            messages_data.add(message.data);
+        }
+        return messages_data;
     }
 
     @Override
@@ -122,16 +122,18 @@ public class ConsumerImpl implements Consumer {
         getBrokerAddress();
         int i = 0;
         while (true) {
-            i = i + 1;
-            if (!addressMap.keySet().isEmpty()){
-                List<BrokerClientMessage.BrokerClientSmallerMessage> messages =
-                        consumeMessage(addressMap.keySet().iterator().next());
-                // ASYNC function call on response body
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    commandLineInterface.printMessage(messages);
-                });
+            if (!addressMap.keySet().isEmpty()) {
+                for (Integer brokerId : addressMap.keySet()) {
+                    i = i + 1;
+                    List<BrokerClientMessage.BrokerClientSmallerMessage> messages =
+                            consumeMessage(brokerId);
+                    // ASYNC function call on response body
+                    CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                        commandLineInterface.printMessage(messages);
+                    });
+                }
             }
-            if (i == 10) {
+            if (i >= 10) {
                 getBrokerAddress();
                 i = 0;
             }
@@ -152,7 +154,7 @@ public class ConsumerImpl implements Consumer {
         );
         ClientServerMessage.ClientServerSmallerMessage response =
                 serverCaller.registerToServerForConsumer(bigMessage).messages.get(0);
-        myConsumerID = response.ClientId;
+        myConsumerID = response.clientId;
     }
 
 }

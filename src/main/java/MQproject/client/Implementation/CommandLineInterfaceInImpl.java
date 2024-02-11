@@ -68,19 +68,19 @@ public class CommandLineInterfaceInImpl implements CommandLineInterfaceIn {
 
     @Override
     public void runCommandLineInterface() {
-        Scanner scanner = new Scanner(System.in);
-        String command = "";
-        while (!command.equals("exit")) {
-            command = scanner.nextLine();
-            LinkedList<String> command_args;
-            command_args = new LinkedList<>(Arrays.asList(command.split(" ")));
-            try{
-                handleCommands(command_args);
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-        }
+//        Scanner scanner = new Scanner(System.in);
+//        String command = "";
+//        while (!command.equals("exit")) {
+//            command = scanner.nextLine();
+//            LinkedList<String> command_args;
+//            command_args = new LinkedList<>(Arrays.asList(command.split(" ")));
+//            try{
+//                handleCommands(command_args);
+//            }
+//            catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     @Override

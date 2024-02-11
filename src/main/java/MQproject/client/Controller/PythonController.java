@@ -3,8 +3,10 @@ package MQproject.client.Controller;
 
 import MQproject.client.Interface.Consumer;
 import MQproject.client.Interface.Producer;
+import MQproject.client.model.message.PythonPushMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -12,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/python")
 public class PythonController {
-
+    //TODO: correct
     @Autowired
     Consumer consumer;
 
@@ -25,9 +27,9 @@ public class PythonController {
         return data;
     }
 
-    @PostMapping("/push")
-    public String pushToPython(String key, String message) {
-        String done = producer.produceMessage(key, message);
+    @PostMapping(value = "/push",consumes = "application/json")
+    public String pushToPython(@RequestBody PythonPushMessage pm) {
+        String done = producer.produceMessage(pm.key, pm.message);
         return "Pushed to Queue";
     }
 

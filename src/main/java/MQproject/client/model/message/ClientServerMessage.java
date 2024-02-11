@@ -5,14 +5,14 @@ public class ClientServerMessage {
     public ArrayList<ClientServerSmallerMessage> messages = new ArrayList<>();
 
     public static class ClientServerSmallerMessage extends BaseMessage {
-        public Integer ClientId;
-        public String ClientIp;
-        public Integer ClientPort;
+        public Integer clientId;
+        public String clientIp;
+        public Integer clientPort;
 
-        public ClientServerSmallerMessage(Integer ClientId, String ClientIp, Integer ClientPort, MessageType messageType) {
-            this.ClientId = ClientId;
-            this.ClientIp = ClientIp;
-            this.ClientPort = ClientPort;
+        public ClientServerSmallerMessage(Integer clientId, String clientIp, Integer clientPort, MessageType messageType) {
+            this.clientId = clientId;
+            this.clientIp = clientIp;
+            this.clientPort = clientPort;
             this.messageType = messageType;
         }
     }
