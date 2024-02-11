@@ -8,16 +8,20 @@ def main(ip,port):
         command = input('Enter command: ')
         if command == 'exit':
             break
+
         elif command == 'pull' and consumer:
             print(client.pull())
+
         elif command == 'push' and producer:
             key = input('Enter key: ')
             message = input('Enter message: ')
             print(client.push(key, message))
+
         elif command == 'subscribe' and consumer:
             def print_message(message):
                 print('Received message:', message)
             client.subscribe(print_message)
+
         else:
             print('Unknown command')
 

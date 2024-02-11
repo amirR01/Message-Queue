@@ -111,10 +111,15 @@ public class ConsumerImpl implements Consumer {
 
     @Override
     public List<String> pull_for_the_python_client() {
-        List<BrokerClientMessage.BrokerClientSmallerMessage> messages = consumeMessage(addressMap.keySet().iterator().next());
         List<String> messages_data = new ArrayList<>();
-        for (BrokerClientMessage.BrokerClientSmallerMessage message : messages) {
-            messages_data.add(message.data);
+        for (Integer brokerId : addressMap.keySet()) {
+            if (!addressMap.keySet().isEmpty()) {
+                List<BrokerClientMessage.BrokerClientSmallerMessage> messages =
+                        consumeMessage(brokerId);
+                for (BrokerClientMessage.BrokerClientSmallerMessage message : messages) {
+                    messages_data.add(message.data);
+                }
+            }
         }
         return messages_data;
     }

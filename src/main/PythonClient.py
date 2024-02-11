@@ -1,4 +1,3 @@
-import time
 import requests
 import threading
 
@@ -18,8 +17,13 @@ class PythonClient:
         # create a thread that sends a subscribe request
         response = requests.post(f'{self.base_url}/subscribe')
         if response.text == "OK":
+            i = 0
             while True:
-                response = requests.post(f'{self.base_url}/pull')
+                i += 1
+                response = requests.post(f'{self.base_url}/pull-as-subscriber')
                 thread = threading.Thread(target=f, args=(response.text,))
                 thread.daemon = True
-                thread.start()    
+                thread.start()
+                if i == 5:
+                    response = requests.post(f'{self.base_url}/subscribe')
+                    i = 0
