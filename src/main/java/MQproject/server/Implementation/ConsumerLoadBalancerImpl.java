@@ -5,8 +5,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+
 @Service
 public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
     public void balanceOnConsumerDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadConsumerId) {
@@ -22,20 +24,25 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         leastLoadedConsumerPartitions.addAll(partitionsToRemove);
     }
 
-    public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer bornConsumerId) {
-        // Find consumer with most partitions
-        int mostLoadedConsumerId = getMostLoadedConsumer(consumerIdToPartitions);
+    public void balanceOnConsumerBirth(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, List<Integer> allPartitions, Integer bornConsumerId) {
+        List<Integer> partitionsToMove = new ArrayList<>();
+        if (consumerIdToPartitions.isEmpty()) {
+            partitionsToMove = allPartitions;
+        } else {
 
-        // Divide partitions of busiest consumer in half
-        ArrayList<Integer> partitionsToMove = new ArrayList<>();
-        ArrayList<Integer> mostLoadedConsumerPartitions = consumerIdToPartitions.get(mostLoadedConsumerId);
-        int numPartitionsToMove = mostLoadedConsumerPartitions.size() / 2;
-        for (int i = 0; i < numPartitionsToMove; i++) {
-            partitionsToMove.add(mostLoadedConsumerPartitions.remove(0));
+            // Find consumer with most partitions
+            int mostLoadedConsumerId = getMostLoadedConsumer(consumerIdToPartitions);
+
+            // Divide partitions of busiest consumer in half
+            ArrayList<Integer> mostLoadedConsumerPartitions = consumerIdToPartitions.get(mostLoadedConsumerId);
+            int numPartitionsToMove = mostLoadedConsumerPartitions.size() / 2;
+            for (int i = 0; i < numPartitionsToMove; i++) {
+                partitionsToMove.add(mostLoadedConsumerPartitions.remove(0));
+            }
+
+            // Assign partitions to the new consumer
         }
-
-        // Assign partitions to the new consumer
-        consumerIdToPartitions.put(bornConsumerId, partitionsToMove);
+        consumerIdToPartitions.put(bornConsumerId, (ArrayList<Integer>) partitionsToMove);
     }
 
     public void balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadPartitionId) {

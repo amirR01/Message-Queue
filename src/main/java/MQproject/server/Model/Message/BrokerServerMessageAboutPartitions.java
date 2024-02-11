@@ -6,16 +6,14 @@ public class BrokerServerMessageAboutPartitions {
     public List<BrokerServerSmallerMessageAboutPartitions> messages = new ArrayList<>();
 
     public static class BrokerServerSmallerMessageAboutPartitions extends BaseMessage {
-        public int partitionId;
-        public int leaderBrokerId;
-        public int replicaBrokerId;
-        public boolean isReplica;
+        public Integer partitionId;
+        public Integer leaderBrokerId;
+        public Integer replicaBrokerId;
 
-        public BrokerServerSmallerMessageAboutPartitions(int partitionId, int leaderBrokerId, int replicaBrokerId, boolean isReplica, MessageType messageType) {
+        public BrokerServerSmallerMessageAboutPartitions(Integer partitionId, Integer leaderBrokerId, Integer replicaBrokerId, MessageType messageType) {
             this.partitionId = partitionId;
             this.leaderBrokerId = leaderBrokerId;
             this.replicaBrokerId = replicaBrokerId;
-            this.isReplica = isReplica;
             this.messageType = messageType;
         }
     }

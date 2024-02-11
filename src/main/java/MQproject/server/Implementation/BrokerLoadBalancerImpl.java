@@ -74,50 +74,50 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
 
         ArrayList<Integer> bornBrokerLeaders = new ArrayList<>();
         ArrayList<Integer> bornBrokerReplicas = new ArrayList<>();
-
-        // leaders
-        int mostLeaderLoadedBrokerId = getMostLoadedBroker(brokerIdToLeaderPartitions);
-        ArrayList<Integer> mostLeaderLoadedBrokerPartitions = brokerIdToLeaderPartitions.get(mostLeaderLoadedBrokerId);
-        int numLeadersToMove = mostLeaderLoadedBrokerPartitions.size() / 2;
-        for (int i = 0; i < numLeadersToMove; i++) {
-            int leaderId = mostLeaderLoadedBrokerPartitions.remove(0);
-            bornBrokerLeaders.add(leaderId);
-            responses.add(new LoadBalancerResponse(
-                    mostLeaderLoadedBrokerId,
-                    bornBrokerId,
-                    leaderId,
-                    false,
-                    LoadBalancerResponseAction.MOVE_PARTITION
-            ));
-        }
-
-        // replicas
-        HashMap<Integer, Integer> partitionIdToLeaderBroker = getPartitionIdToBroker(brokerIdToLeaderPartitions);
-
-        int mostReplicaLoadedBrokerId = getMostLoadedBroker(brokerIdToReplicaPartitions);
-        ArrayList<Integer> mostReplicaLoadedBrokerPartitions = brokerIdToReplicaPartitions.get(mostReplicaLoadedBrokerId);
-        int numReplicasToMove = mostReplicaLoadedBrokerPartitions.size() / 2;
-        for (int i = 0; i < mostReplicaLoadedBrokerPartitions.size() || bornBrokerReplicas.size() < numReplicasToMove; i++) {
-            int replicaId = mostReplicaLoadedBrokerPartitions.get(i);
-            if (!bornBrokerLeaders.contains(replicaId)) {
-                bornBrokerReplicas.add(replicaId);
-                int leaderBrokerId = partitionIdToLeaderBroker.get(replicaId);
+        if (brokerIdToLeaderPartitions.size() != 0 ) {
+            // leaders
+            int mostLeaderLoadedBrokerId = getMostLoadedBroker(brokerIdToLeaderPartitions);
+            ArrayList<Integer> mostLeaderLoadedBrokerPartitions = brokerIdToLeaderPartitions.get(mostLeaderLoadedBrokerId);
+            int numLeadersToMove = mostLeaderLoadedBrokerPartitions.size() / 2;
+            for (int i = 0; i < numLeadersToMove; i++) {
+                int leaderId = mostLeaderLoadedBrokerPartitions.remove(0);
+                bornBrokerLeaders.add(leaderId);
                 responses.add(new LoadBalancerResponse(
-                        leaderBrokerId,
+                        mostLeaderLoadedBrokerId,
                         bornBrokerId,
-                        replicaId,
+                        leaderId,
                         false,
-                        LoadBalancerResponseAction.CLONE_PARTITION
-                ));
-                responses.add(new LoadBalancerResponse(
-                        mostReplicaLoadedBrokerId,
-                        replicaId,
-                        true,
-                        LoadBalancerResponseAction.REMOVE_PARTITION
+                        LoadBalancerResponseAction.MOVE_PARTITION
                 ));
             }
+            // replicas
+            HashMap<Integer, Integer> partitionIdToLeaderBroker = getPartitionIdToBroker(brokerIdToLeaderPartitions);
+
+            int mostReplicaLoadedBrokerId = getMostLoadedBroker(brokerIdToReplicaPartitions);
+            ArrayList<Integer> mostReplicaLoadedBrokerPartitions = brokerIdToReplicaPartitions.get(mostReplicaLoadedBrokerId);
+            int numReplicasToMove = mostReplicaLoadedBrokerPartitions.size() / 2;
+            for (int i = 0; i < mostReplicaLoadedBrokerPartitions.size() || bornBrokerReplicas.size() < numReplicasToMove; i++) {
+                int replicaId = mostReplicaLoadedBrokerPartitions.get(i);
+                if (!bornBrokerLeaders.contains(replicaId)) {
+                    bornBrokerReplicas.add(replicaId);
+                    int leaderBrokerId = partitionIdToLeaderBroker.get(replicaId);
+                    responses.add(new LoadBalancerResponse(
+                            leaderBrokerId,
+                            bornBrokerId,
+                            replicaId,
+                            false,
+                            LoadBalancerResponseAction.CLONE_PARTITION
+                    ));
+                    responses.add(new LoadBalancerResponse(
+                            mostReplicaLoadedBrokerId,
+                            replicaId,
+                            true,
+                            LoadBalancerResponseAction.REMOVE_PARTITION
+                    ));
+                }
+            }
+            mostReplicaLoadedBrokerPartitions.removeAll(bornBrokerReplicas);
         }
-        mostReplicaLoadedBrokerPartitions.removeAll(bornBrokerReplicas);
 
         brokerIdToLeaderPartitions.put(bornBrokerId, bornBrokerLeaders);
         brokerIdToReplicaPartitions.put(bornBrokerId, bornBrokerReplicas);

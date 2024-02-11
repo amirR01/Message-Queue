@@ -5,7 +5,6 @@ import MQproject.server.Model.Broker;
 import MQproject.server.Model.Client;
 import MQproject.server.Model.ClientType;
 import MQproject.server.Model.Data.LoadBalancerResponse;
-import MQproject.server.Model.Data.LoadBalancerResponseAction;
 import MQproject.server.Model.Data.Tuple;
 import MQproject.server.Model.Message.*;
 import MQproject.server.Model.Message.BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients;
@@ -55,11 +54,11 @@ public class ServerImplementation implements ServerService {
     }
 
 
-    public void addPartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
+    public void addPartitionAPI(Integer brokerId, Integer partitionId) {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                        partitionId, brokerId, -1, isReplica, MessageType.ADD_PARTITION));
+                        partitionId, brokerId, null, MessageType.ADD_PARTITION));
 
         Broker broker = brokersIds.get(brokerId);
 
@@ -76,6 +75,46 @@ public class ServerImplementation implements ServerService {
     public void addPartitionUtil(Integer producerId, String key) {
         int partitionId = generateToken();
         keyToPartition.put(key, partitionId);
+        ArrayList<LoadBalancerResponse> responses =
+                brokerLoadBalancer.balanceOnPartitionBirth(brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, partitionId);
+        // partition management.
+        responseToApiCallMapping(responses);
+        // consumer management.
+        if (!consumerIdToPartitions.isEmpty()) {
+            Integer consumerId = consumerLoadBalancer.balanceOnPartitionBirth(consumerIdToPartitions, partitionId);
+            Integer brokerId = findThisPartitionBroker(partitionId);
+            informBrokerAboutConsumer(brokerId, consumerId);
+        }
+    }
+
+    private void responseToApiCallMapping(ArrayList<LoadBalancerResponse> responses) {
+        for (LoadBalancerResponse response : responses) {
+            switch (response.getAction()) {
+                case MOVE_PARTITION:
+                    movePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
+                    break;
+                case REMOVE_PARTITION:
+                    removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
+                    break;
+                case CLONE_PARTITION:
+                    clonePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
+                    break;
+                case ADD_PARTITION:
+                    addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
+                    break;
+                case BECOME_PARTITION_LEADER:
+                    becomeLeaderAPI(response.getSourceBrokerId(), response.getPartitionId());
+                    break;
+                default:
+                    // Do nothing
+                    break;
+            }
+        }
+
+
+    }
+
+    private void addPartitionToProducer(Integer producerId, int partitionId) {
         ArrayList<Integer> partitions = producerIdToPartitions.get(producerId);
         if (partitions != null) {
             partitions.add(partitionId);
@@ -84,29 +123,15 @@ public class ServerImplementation implements ServerService {
             partitions.add(partitionId);
             producerIdToPartitions.put(producerId, partitions);
         }
-        ArrayList<LoadBalancerResponse> responses =
-                brokerLoadBalancer.balanceOnPartitionBirth(brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, partitionId);
-        // partition management.
-        for (LoadBalancerResponse response : responses) {
-            if (response.getAction() == LoadBalancerResponseAction.ADD_PARTITION) {
-                addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-            }
-        }
-        // consumer management.
-        Integer consumerId = consumerLoadBalancer.balanceOnPartitionBirth(consumerIdToPartitions, partitionId);
-        Integer brokerId = findThisPartitionBroker(partitionId);
-        informBrokerAboutConsumer(brokerId, consumerId);
-        // producer management.
-        informBrokerAboutProducer(brokerId, producerId);
     }
 
 
-    public void removePartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
+    public void removePartitionAPI(Integer brokerId, Integer partitionId) {
         // TODO: these are just api's check for not to do anything else
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                        partitionId, brokerId, -1, isReplica, MessageType.REMOVE_PARTITION));
+                        partitionId, null, null, MessageType.REMOVE_PARTITION));
 
         Broker broker = brokersIds.get(brokerId);
 
@@ -119,12 +144,12 @@ public class ServerImplementation implements ServerService {
         );
     }
 
-    public void movePartitionAPI(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId, boolean isReplica) {
+    public void movePartitionAPI(Integer sourceBrokerId, Integer destinationBrokerId, Integer partitionId) {
 
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                        partitionId, sourceBrokerId, destinationBrokerId, isReplica, MessageType.MOVE_PARTITION));
+                        partitionId, destinationBrokerId, null, MessageType.MOVE_PARTITION));
 
         Broker broker = brokersIds.get(sourceBrokerId);
 
@@ -138,13 +163,13 @@ public class ServerImplementation implements ServerService {
     }
 
 
-    public void clonePartitionAPI(Integer brokerId, Integer partitionId, boolean isReplica) {
+    public void clonePartitionAPI(Integer leaderBrokerId, Integer replicaBrokerId, Integer partitionId) {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                        partitionId, brokerId, -1, isReplica, MessageType.CLONE_PARTITION));
+                        partitionId, leaderBrokerId, replicaBrokerId, MessageType.CLONE_PARTITION));
 
-        Broker broker = brokersIds.get(brokerId);
+        Broker broker = brokersIds.get(leaderBrokerId);
         restTemplate.postForEntity(
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
@@ -158,7 +183,7 @@ public class ServerImplementation implements ServerService {
         BrokerServerMessageAboutPartitions message = new BrokerServerMessageAboutPartitions();
         message.messages.add(
                 new BrokerServerMessageAboutPartitions.BrokerServerSmallerMessageAboutPartitions(
-                        partitionId, brokerId, -1, false, MessageType.BECOME_PARTITION_LEADER));
+                        partitionId, brokerId, null, MessageType.BECOME_PARTITION_LEADER));
 
         Broker broker = brokersIds.get(brokerId);
         restTemplate.postForEntity(
@@ -201,22 +226,9 @@ public class ServerImplementation implements ServerService {
             brokersIds.remove(brokerId);
             // load balancing on broker death
             ArrayList<LoadBalancerResponse> responses =
-            brokerLoadBalancer.balanceOnBrokerDeath(
-                brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);           
-                for (LoadBalancerResponse response : responses) {
-                    switch (response.getAction()) {
-                        case BECOME_PARTITION_LEADER:
-                            becomeLeaderAPI(response.getSourceBrokerId(), response.getPartitionId());
-                            break;
-                        case CLONE_PARTITION:
-                            clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                            break;
-                        default:
-                            // Do nothing
-                            break;
-                    }
-                }
-
+                    brokerLoadBalancer.balanceOnBrokerDeath(
+                            brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);
+            responseToApiCallMapping(responses);
             System.out.println("Removed inactive broker: " + brokerId);
         }
     }
@@ -258,7 +270,7 @@ public class ServerImplementation implements ServerService {
                 new BrokerServerSmallerMessageAboutClients(
                         consumerId,
                         consumerIdToPartitions.get(
-                                consumerId), MessageType.INFORM_BROKER_ABOUT_SUBSCRIBER));
+                                consumerId), MessageType.INFORM_ABOUT_CONSUMER));
 
 
         informApi(brokerId, brokerMessage);
@@ -270,7 +282,7 @@ public class ServerImplementation implements ServerService {
                 new BrokerServerSmallerMessageAboutClients(
                         producerId,
                         producerIdToPartitions.get(
-                                producerId), MessageType.INFORM_BROKER_ABOUT_PRODUCER));
+                                producerId), MessageType.INFORM_ABOUT_PRODUCER));
         informApi(brokerId, brokerMessage);
     }
 
@@ -279,7 +291,7 @@ public class ServerImplementation implements ServerService {
         restTemplate.postForEntity(
                 "http://" + broker.getIp() + ":"
                         + broker.getPort()
-                        + "/api/broker-server/inform-broker",
+                        + "/api/broker-server/update-clients",
                 brokerMessage,
                 BrokerServerMessageAboutClients.class
         );
@@ -294,7 +306,9 @@ public class ServerImplementation implements ServerService {
             // TODO: check the constraint
             if (consumerIdToPartitions.get(smallerMessage.clientId) == null) {
                 consumerLoadBalancer.balanceOnConsumerBirth(
-                        consumerIdToPartitions, smallerMessage.clientId);
+                        consumerIdToPartitions,
+                        (List<Integer>) keyToPartition.values()
+                        , smallerMessage.clientId);
             }
             List<Integer> partitions = consumerIdToPartitions.get(smallerMessage.clientId);
             for (Integer partition : partitions) {
@@ -329,35 +343,22 @@ public class ServerImplementation implements ServerService {
     public ProducerServerMessage produce(ProducerServerMessage message) {
         // producerIdToPartitions.put(message.messages.get(0), new ArrayList())
         for (ProducerServerMessage.ProducerServerSmallerMessage smallerMessage : message.messages) {
-            if (smallerMessage.messageType == MessageType.PRODUCE_MESSAGE) {
-                // TODO: save the producers id and the partition id in a map
-                // producerIdToPartitions.put(smallerMessage.ClientId, smallerMessage.PartitionId);
-                // key -> partitionId
-                addPartitionUtil(smallerMessage.ClientId, smallerMessage.key);
-                // TODO: response producer with the partition id.
-
+            if (smallerMessage.messageType == MessageType.GET_PARTITION) {
+                if (!keyToPartition.containsKey(smallerMessage.key)) {
+                    addPartitionUtil(smallerMessage.ClientId, smallerMessage.key);
+                }
                 int clientId = smallerMessage.ClientId;
                 int partitionId = keyToPartition.get(smallerMessage.key);
+
+                addPartitionToProducer(clientId, partitionId);
+
                 int brokerId = findThisPartitionBroker(partitionId);
+                informBrokerAboutProducer(brokerId, clientId);
                 Broker toAssignedBroker = brokersIds.get(brokerId);
                 smallerMessage.brokerId = toAssignedBroker.getId();
                 smallerMessage.brokerPort = toAssignedBroker.getPort();
                 smallerMessage.brokerIp = toAssignedBroker.getIp();
                 smallerMessage.PartitionId = partitionId;
-                int newPartitionId = smallerMessage.PartitionId;
-
-                // update consumerIdToPartitions
-                ArrayList<Integer> clientPartitions = producerIdToPartitions.get(clientId);
-                if (clientPartitions != null) {
-                    clientPartitions.add(newPartitionId);
-                } else {
-                    clientPartitions = new ArrayList<>();
-                    clientPartitions.add(newPartitionId);
-                    producerIdToPartitions.put(clientId, clientPartitions);
-                }
-
-                // Inform brokers that a new producer added
-                informBrokerAboutConsumer(smallerMessage.brokerId, clientId);
             }
         }
         return message;
@@ -375,7 +376,9 @@ public class ServerImplementation implements ServerService {
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message) {
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.REGISTER_BROKER
-                    && smallerMessage.brokerId == null) {
+                    && (smallerMessage.brokerId == null || !brokersIds.containsKey(smallerMessage.brokerId))) {
+                System.out.println("new broker");
+                System.out.println(smallerMessage.brokerId);
                 // for dead brokers
                 Integer brokerId = addNewBrokerUtil(smallerMessage.brokerIp, smallerMessage.brokerPort);
                 smallerMessage.brokerId = brokerId;
@@ -396,22 +399,7 @@ public class ServerImplementation implements ServerService {
             ArrayList<LoadBalancerResponse> responses =
                     brokerLoadBalancer.balanceOnBrokerBirth(
                             brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);            // partition management.
-            for (LoadBalancerResponse response : responses) {
-                switch (response.getAction()) {
-                    case MOVE_PARTITION:
-                        addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                        break;
-                    case REMOVE_PARTITION:
-                        removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                        break;
-                    case CLONE_PARTITION:
-                        clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                        break;
-                    default:
-                        // Do nothing
-                        break;
-                }
-            }
+            responseToApiCallMapping(responses);
         });
     }
 
@@ -444,7 +432,8 @@ public class ServerImplementation implements ServerService {
     private void loadBalanceAsynclyAddingNewConsumer(Integer clientId) {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
 
-            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions, clientId);
+            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions,
+                    (List<Integer>) keyToPartition.values(), clientId);
         });
     }
 
