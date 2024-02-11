@@ -25,11 +25,11 @@ public class DataManagerImpl implements DataManager {
 
     @PostConstruct
     public void init() {
-        try {
-            loadPartitionObjectFromFile();
-        } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception according to your application's requirements
-        }
+//        try {
+//            loadPartitionObjectFromFile();
+//        } catch (IOException e) {
+//            e.printStackTrace(); // Handle the exception according to your application's requirements
+//        }
     }
 
     // TODO(): search to know it that reduce performance that all files are in same directory
@@ -59,7 +59,7 @@ public class DataManagerImpl implements DataManager {
         }
     }
 
-    public void addPartition(int partitionId, int leaderBrokerId, int replicaBrokerId, String partitionData, int headIndex, boolean isReplica) {
+    public void addPartition(Integer partitionId, Integer leaderBrokerId, Integer replicaBrokerId, String partitionData,Integer headIndex, boolean isReplica) {
         // check if this partition already exists
         if (partitions.containsKey(partitionId)) {
             throw new RuntimeException("partition already exists");
@@ -75,29 +75,31 @@ public class DataManagerImpl implements DataManager {
             // create a new file
             file.createNewFile();
             // write the data to the file
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
             if (partitionData != null) {
+                FileOutputStream fileOutputStream = new FileOutputStream(file);
                 fileOutputStream.write(partitionData.getBytes());
+                fileOutputStream.close();
             }
-            fileOutputStream.close();
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void addMessage(String message, int partitionId, Boolean isReplica) {
+    public void addMessage(String message, int partitionId, boolean isReplica) {
         Partition partition = partitions.get(partitionId);
         if (partition == null) {
             throw new RuntimeException("partition not found");
         }
-        if (partition.isReplica == isReplica) {
+        if (partition.isReplica != isReplica ) {
             throw new RuntimeException("partition is not available for this operation");
         }
         // write the message to the file
-        try (RandomAccessFile file = new RandomAccessFile(partition.partitionsAddress, "r")) {
+        try (RandomAccessFile file = new RandomAccessFile(partition.partitionsAddress, "rw")) {
             file.seek(file.length());
             // Write the data
-            file.write((message + "\n").getBytes());
+            file.write((message).getBytes());
+            file.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -22,10 +22,9 @@ public class BrokerClientController {
             return ResponseEntity.ok(new BrokerClientMessage());
         } catch (Exception e) {
             String errorMessage = e.getMessage();
-            ResponseEntity.status(500).body(errorMessage);
+            message.messages.get(0).data = errorMessage;
+            return ResponseEntity.status(500).body(message);
         }
-        // not reachable
-        return null;
     }
 
     @PostMapping(value = "/consume-message", consumes = "application/json")

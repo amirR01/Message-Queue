@@ -53,7 +53,7 @@ public class BrokerServerServiceImpl implements BrokerServerService {
     public void stopBroker() {
     }
 
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 15000)
     private void heartBeat() {
         registerToServer();
     }
@@ -62,7 +62,7 @@ public class BrokerServerServiceImpl implements BrokerServerService {
         BrokerServerMessageAboutBrokers bigMessage = new BrokerServerMessageAboutBrokers();
         bigMessage.messages.add(
                 new BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers(
-                        null, myIp, myPort, MessageType.REGISTER_BROKER
+                        myBrokerId, myIp, myPort, MessageType.REGISTER_BROKER
                 )
         );
         BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers response =
@@ -83,9 +83,13 @@ public class BrokerServerServiceImpl implements BrokerServerService {
     }
 
     private void updateBrokersAddress() {
-        BrokerServerMessageAboutBrokers message = serverCaller.getBrokersList();
-        for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
-            brokersAddress.put(smallerMessage.brokerId, new Tuple<>(smallerMessage.brokerIp, smallerMessage.brokerPort));
+        try {
+            BrokerServerMessageAboutBrokers message = serverCaller.getBrokersList();
+            for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
+                brokersAddress.put(smallerMessage.brokerId, new Tuple<>(smallerMessage.brokerIp, smallerMessage.brokerPort));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -134,6 +138,7 @@ public class BrokerServerServiceImpl implements BrokerServerService {
                 BrokerBrokerMessage brokerBrokerMessage = new BrokerBrokerMessage();
                 Tuple<String, Integer> brokerAddress = getBrokerAddress(smallerMessage.replicaBrokerId);
                 Tuple<Partition, String> partition = dataManager.getPartition(smallerMessage.partitionId);
+                partition.getFirst().replicaBrokerId = smallerMessage.replicaBrokerId;
                 brokerBrokerMessage.messages.add(
                         new BrokerBrokerMessage.BrokerBrokerSmallerMessage(
                                 smallerMessage.leaderBrokerId, smallerMessage.replicaBrokerId,

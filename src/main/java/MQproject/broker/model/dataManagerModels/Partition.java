@@ -1,14 +1,14 @@
 package MQproject.broker.model.dataManagerModels;
 
 public class Partition {
-    public int partitionId;
-    public int leaderBrokerId;
-    public int replicaBrokerId;
-    public int headIndex;
+    public Integer partitionId;
+    public Integer leaderBrokerId;
+    public Integer replicaBrokerId;
+    public Integer headIndex;
     public boolean isReplica = false;
     public String partitionsAddress;
 
-    public Partition(int partitionId, int leaderBrokerId, int replicaBrokerId, int headIndex, boolean isReplica, String partitionsAddress) {
+    public Partition(Integer partitionId, Integer leaderBrokerId, Integer replicaBrokerId, Integer headIndex, boolean isReplica, String partitionsAddress) {
         this.partitionId = partitionId;
         this.leaderBrokerId = leaderBrokerId;
         this.replicaBrokerId = replicaBrokerId;

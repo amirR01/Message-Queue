@@ -52,29 +52,35 @@ public class BrokerBrokerServiceImpl implements BrokerBrokerService {
 
 
     public void sendDataAsyncToTheReplica(BrokerClientMessage.BrokerClientSmallerMessage smallerMessage) {
-        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            // send the data to the replicas
-            Integer replicaBrokerId = dataManager.getReplicaBrokerId(smallerMessage.partitionId);
-            if (replicaBrokerId != null) {
-                Tuple<String, Integer> brokerAddress = brokerServerService.getBrokerAddress(replicaBrokerId);
-                if (brokerAddress == null) {
-                    // request the server for the brokers address
-                    brokerAddress = brokerServerService.getBrokerAddress(replicaBrokerId);
+        try {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                // send the data to the replicas
+                Integer replicaBrokerId = dataManager.getReplicaBrokerId(smallerMessage.partitionId);
+                if (replicaBrokerId != null) {
+                    Tuple<String, Integer> brokerAddress = brokerServerService.getBrokerAddress(replicaBrokerId);
+                    if (brokerAddress == null) {
+                        // request the server for the brokers address
+                        brokerAddress = brokerServerService.getBrokerAddress(replicaBrokerId);
+                    }
+                    BrokerBrokerMessage brokerBrokerMessage = new BrokerBrokerMessage();
+                    brokerBrokerMessage.messages.add(
+                            new BrokerBrokerMessage.BrokerBrokerSmallerMessage(
+                                    brokerServerService.getMyBrokerId(), replicaBrokerId, smallerMessage.partitionId, null,
+                                    smallerMessage.data, MessageType.REPLICATE_MESSAGE
+                            )
+                    );
+                    restTemplate.postForEntity(
+                            "http://" + brokerAddress.getFirst() + ":" + brokerAddress.getSecond() + "/api/broker-broker/update-replicas-data",
+                            brokerBrokerMessage,
+                            BrokerBrokerMessage.class
+                    );
                 }
-                BrokerBrokerMessage brokerBrokerMessage = new BrokerBrokerMessage();
-                brokerBrokerMessage.messages.add(
-                        new BrokerBrokerMessage.BrokerBrokerSmallerMessage(
-                                brokerServerService.getMyBrokerId(), replicaBrokerId, smallerMessage.partitionId, null,
-                                smallerMessage.data, MessageType.REPLICATE_MESSAGE
-                        )
-                );
-                restTemplate.postForEntity(
-                        "http://" + brokerAddress.getFirst() + ":" + brokerAddress.getFirst() + "/api/broker-broker/update-replicas-data",
-                        brokerBrokerMessage,
-                        BrokerBrokerMessage.class
-                );
-            }
-        });
+            });
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
 
     }
 
@@ -83,7 +89,7 @@ public class BrokerBrokerServiceImpl implements BrokerBrokerService {
             if (smallerMessage.messageType != MessageType.REPLICATE_MESSAGE) {
                 throw new IllegalArgumentException("Invalid message type");
             } else {
-                dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId, true);
+                dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId,true);
             }
         }
     }
