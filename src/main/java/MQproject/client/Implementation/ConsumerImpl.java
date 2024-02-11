@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.lang.Thread.sleep;
+
 @Service
 public class ConsumerImpl implements Consumer {
     private final RestTemplate restTemplate = new RestTemplate();
@@ -152,9 +154,21 @@ public class ConsumerImpl implements Consumer {
                         null, myIp, myPort, MessageType.REGISTER_CONSUMER
                 )
         );
-        ClientServerMessage.ClientServerSmallerMessage response =
-                serverCaller.registerToServerForConsumer(bigMessage).messages.get(0);
-        myConsumerID = response.clientId;
+        try {
+            ClientServerMessage.ClientServerSmallerMessage response =
+                    serverCaller.registerToServerForConsumer(bigMessage).messages.get(0);
+            myConsumerID = response.clientId;
+        } catch (Exception e) {
+            // retry
+            e.printStackTrace();
+            // stack overflow probability
+            try {
+                sleep(5000);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+            registerToServer();
+        }
     }
 
 }
