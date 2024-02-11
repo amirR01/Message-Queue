@@ -199,7 +199,24 @@ public class ServerImplementation implements ServerService {
         for (Integer brokerId : inactiveBrokers) {
             // not to remove here call load balancer.
             brokersIds.remove(brokerId);
-            // TODO: call load balancer function on broker death
+            // load balancing on broker death
+            ArrayList<LoadBalancerResponse> responses =
+            brokerLoadBalancer.balanceOnBrokerDeath(
+                brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);           
+                for (LoadBalancerResponse response : responses) {
+                    switch (response.getAction()) {
+                        case BECOME_PARTITION_LEADER:
+                            becomeLeaderAPI(response.getSourceBrokerId(), response.getPartitionId());
+                            break;
+                        case CLONE_PARTITION:
+                            clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                            break;
+                        default:
+                            // Do nothing
+                            break;
+                    }
+                }
+
             System.out.println("Removed inactive broker: " + brokerId);
         }
     }
