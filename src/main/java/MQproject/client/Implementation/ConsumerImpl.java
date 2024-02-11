@@ -151,7 +151,7 @@ public class ConsumerImpl implements Consumer {
                 )
         );
         ClientServerMessage.ClientServerSmallerMessage response =
-                serverCaller.registerToServer(bigMessage).messages.get(0);
+                serverCaller.registerToServerForConsumer(bigMessage).messages.get(0);
         myConsumerID = response.ClientId;
     }
 

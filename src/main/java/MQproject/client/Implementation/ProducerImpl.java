@@ -12,14 +12,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestOperations;
+import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.css.Counter;
 
 import java.util.HashMap;
+
+import static java.lang.Thread.sleep;
 
 @Service
 public class ProducerImpl implements Producer {
 
     @Autowired
     public ServerCaller serverCaller;
+
+//    @Autowired
+//    public MeterRegistery meterRegistery;
 
     private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap = new HashMap<>();
     // first: key, second: partition ID, third: brokerID, fourth: brokerIP, fifth: port
@@ -32,7 +39,7 @@ public class ProducerImpl implements Producer {
     @Value("${MQproject.client.producer}")
     public Boolean isProducer;
 
-    private RestOperations restTemplate;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     @PostConstruct
     public void init() {
@@ -72,15 +79,20 @@ public class ProducerImpl implements Producer {
         }
 
         BrokerClientMessage bigMessage = new BrokerClientMessage();
+        Integer partitionId = addressMap.get(key).getFirst();
+        Integer brokerId = addressMap.get(key).getSecond().getFirst();
+        String  brokerIp = addressMap.get(key).getSecond().getSecond().getFirst();
+        Integer brokerPort = addressMap.get(key).getSecond().getSecond().getSecond();
+
         bigMessage.messages.add(
                 new BrokerClientMessage.BrokerClientSmallerMessage(
-                        myProducerID, null, "key:" + key + "-" + "value:" + message
+                        myProducerID, partitionId, "key:" + key + "-" + "value:" + message
                         + "\n", MessageType.PRODUCE_MESSAGE));
 
 
         ResponseEntity<BrokerClientMessage> response = restTemplate.postForEntity(
-                "http://" + addressMap.get(key).getSecond().getSecond().getFirst() + ":"
-                        + addressMap.get(key).getSecond().getSecond().getSecond()
+                "http://" + brokerIp + ":"
+                        + brokerPort
                         + "/api/broker-client/produce-message",
                 bigMessage,
                 BrokerClientMessage.class
@@ -88,7 +100,7 @@ public class ProducerImpl implements Producer {
         return "done";
     }
 
-    private void registerToServer() {
+    private void registerToServer(){
 
         ClientServerMessage bigMessage =
                 new ClientServerMessage();
@@ -100,12 +112,20 @@ public class ProducerImpl implements Producer {
         );
         try {
             ClientServerMessage.ClientServerSmallerMessage response =
-                    serverCaller.registerToServer(bigMessage).messages.get(0);
+                    serverCaller.registerToServerForProducer(bigMessage).messages.get(0);
             myProducerID = response.ClientId;
         } catch (Exception e) {
             // retry
+            e.printStackTrace();
+            // stack overflow probability
+            try {
+                sleep(5000);
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
             registerToServer();
         }
+//        Counter.builder("meter name ").register()
     }
 
 }

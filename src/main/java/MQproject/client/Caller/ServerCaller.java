@@ -12,12 +12,15 @@ import org.springframework.web.bind.annotation.RequestBody;
         url = "http://${MQproject.client.server.address}:${MQproject.client.server.port}"
 )
 public interface ServerCaller {
-    @PostMapping("api/server-client/register")
-    ClientServerMessage registerToServer(@RequestBody ClientServerMessage message);
+    @PostMapping("api/server-producer/register")
+    ClientServerMessage registerToServerForProducer(@RequestBody ClientServerMessage message);
     // subscribe
-    @PostMapping("api/server-client/assign-broker")
+    @PostMapping("api/server-consumer/register")
+    ClientServerMessage registerToServerForConsumer(@RequestBody ClientServerMessage message);
+    // subscribe
+    @PostMapping("api/server-consumer/subscribe")
     ConsumerServerMessage assignBroker(@RequestBody ConsumerServerMessage message);
     // produce
-    @PostMapping("api/server-client/assign-partition")
+    @PostMapping("api/server-producer/produce")
     ProducerServerMessage assignPartition(@RequestBody ProducerServerMessage message);
 }
