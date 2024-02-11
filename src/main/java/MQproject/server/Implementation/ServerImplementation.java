@@ -58,12 +58,12 @@ public class ServerImplementation implements ServerService {
         .help("Total number of requests.")
         .register();
 
-    private static final Counter successfulRequests = Counter.build()
+    private static final Counter successfulRequests = Counter.build()    
         .name("successful_requests_total")
         .help("Total number of successful requests.")
         .register();
     
-    private static final Counter failedRequests = Counter.build()
+    private static final Counter failedRequests = Counter.build()           // put this on exceptions
         .name("failed_requests_total")
         .help("Total number of failed requests.")
         .register();
@@ -158,18 +158,23 @@ public class ServerImplementation implements ServerService {
         for (LoadBalancerResponse response : responses) {
             switch (response.getAction()) {
                 case MOVE_PARTITION:
+                    requests.inc();
                     movePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
                     break;
                 case REMOVE_PARTITION:
+                    requests.inc();
                     removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 case CLONE_PARTITION:
+                    requests.inc();
                     clonePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
                     break;
                 case ADD_PARTITION:
+                    requests.inc();
                     addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 case BECOME_PARTITION_LEADER:
+                    requests.inc();
                     becomeLeaderAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 default:
