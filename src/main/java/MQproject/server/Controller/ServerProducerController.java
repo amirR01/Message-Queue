@@ -30,7 +30,7 @@ public class ServerProducerController {
         return null;
     }
 
-    @PostMapping(value = "/register-producer", consumes = "application/json")
+    @PostMapping(value = "/register", consumes = "application/json")
     public ResponseEntity<ProducerServerMessage> registerProducer(@RequestBody ProducerServerMessage message) {
         ProducerServerMessage response = serverService.registerProducer(message);
         return ResponseEntity.ok(response);

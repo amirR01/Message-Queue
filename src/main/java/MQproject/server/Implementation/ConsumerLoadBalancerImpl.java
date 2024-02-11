@@ -1,12 +1,13 @@
 package MQproject.server.Implementation;
+
 import MQproject.server.Interface.ConsumerLoadBalancer;
+import org.springframework.stereotype.Service;
 
-import java.util.*;
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-
+@Service
 public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
     public void balanceOnConsumerDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadConsumerId) {
         // Remove partitions of dead consumer
@@ -36,6 +37,7 @@ public class ConsumerLoadBalancerImpl implements ConsumerLoadBalancer {
         // Assign partitions to the new consumer
         consumerIdToPartitions.put(bornConsumerId, partitionsToMove);
     }
+
     public void balanceOnPartitionDeath(HashMap<Integer, ArrayList<Integer>> consumerIdToPartitions, Integer deadPartitionId) {
         // Find consumer with most partitions
         int mostLoadedConsumerId = getMostLoadedConsumer(consumerIdToPartitions);

@@ -308,8 +308,6 @@ public class ServerImplementation implements ServerService {
     }
 
 
-
-
     @Override
     public ProducerServerMessage produce(ProducerServerMessage message) {
         // producerIdToPartitions.put(message.messages.get(0), new ArrayList())
@@ -359,8 +357,9 @@ public class ServerImplementation implements ServerService {
     @Override
     public BrokerServerMessageAboutBrokers registerBroker(BrokerServerMessageAboutBrokers message) {
         for (BrokerServerMessageAboutBrokers.BrokerServerSmallerMessageAboutBrokers smallerMessage : message.messages) {
-            if (smallerMessage.messageType == MessageType.REGISTER_BROKER ||
-                    brokersIds.get(smallerMessage.brokerId) == null) {                      // for dead brokers
+            if (smallerMessage.messageType == MessageType.REGISTER_BROKER
+                    && smallerMessage.brokerId == null) {
+                // for dead brokers
                 Integer brokerId = addNewBrokerUtil(smallerMessage.brokerIp, smallerMessage.brokerPort);
                 smallerMessage.brokerId = brokerId;
                 loadBalanceAsynclyAddingNewBroker(brokerId);
@@ -378,24 +377,24 @@ public class ServerImplementation implements ServerService {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
             // TODO: Do the needed actions.
             ArrayList<LoadBalancerResponse> responses =
-            brokerLoadBalancer.balanceOnBrokerBirth(
-                brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);            // partition management.
-                for (LoadBalancerResponse response : responses) {
-                    switch (response.getAction()) {
-                        case MOVE_PARTITION:
-                            addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                            break;
-                        case REMOVE_PARTITION:
-                            removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                            break;
-                        case CLONE_PARTITION:
-                            clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
-                            break;
-                        default:
-                            // Do nothing
-                            break;
-                    }
+                    brokerLoadBalancer.balanceOnBrokerBirth(
+                            brokerIdToLeaderPartitions, brokerIdToReplicaPartitions, brokerId);            // partition management.
+            for (LoadBalancerResponse response : responses) {
+                switch (response.getAction()) {
+                    case MOVE_PARTITION:
+                        addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                        break;
+                    case REMOVE_PARTITION:
+                        removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                        break;
+                    case CLONE_PARTITION:
+                        clonePartitionAPI(response.getSourceBrokerId(), response.getPartitionId(), response.isReplica());
+                        break;
+                    default:
+                        // Do nothing
+                        break;
                 }
+            }
         });
     }
 
@@ -427,8 +426,8 @@ public class ServerImplementation implements ServerService {
 
     private void loadBalanceAsynclyAddingNewConsumer(Integer clientId) {
         CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-            
-            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions, clientId);           
+
+            consumerLoadBalancer.balanceOnConsumerBirth(consumerIdToPartitions, clientId);
         });
     }
 

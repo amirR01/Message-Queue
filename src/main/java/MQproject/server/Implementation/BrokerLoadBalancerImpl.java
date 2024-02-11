@@ -3,11 +3,12 @@ package MQproject.server.Implementation;
 import MQproject.server.Interface.BrokerLoadBalancer;
 import MQproject.server.Model.Data.LoadBalancerResponse;
 import MQproject.server.Model.Data.LoadBalancerResponseAction;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
+@Service
 public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
     public ArrayList<LoadBalancerResponse> balanceOnBrokerDeath(HashMap<Integer, ArrayList<Integer>> brokerIdToLeaderPartitions,
                                                                 HashMap<Integer, ArrayList<Integer>> brokerIdToReplicaPartitions,
@@ -198,6 +199,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
         }
         return mostLoadedBrokerId;
     }
+
     private ArrayList<Integer> sortBrokersByLoad(HashMap<Integer, ArrayList<Integer>> brokerPartitions, boolean reverse) {
         // Create a list of broker IDs
         ArrayList<Integer> brokerIds = new ArrayList<>(brokerPartitions.keySet());
@@ -211,6 +213,7 @@ public class BrokerLoadBalancerImpl implements BrokerLoadBalancer {
 
         return brokerIds;
     }
+
     private HashMap<Integer, Integer> getPartitionIdToBroker(HashMap<Integer, ArrayList<Integer>> brokerIdToPartitions) {
         HashMap<Integer, Integer> partitionIdToBroker = new HashMap<>();
 
