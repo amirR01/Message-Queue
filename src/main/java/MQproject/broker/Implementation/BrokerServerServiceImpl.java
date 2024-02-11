@@ -116,8 +116,11 @@ public class BrokerServerServiceImpl implements BrokerServerService {
                 Tuple<Partition, String> partition = dataManager.getPartition(smallerMessage.partitionId);
                 brokerBrokerMessage.messages.add(
                         new BrokerBrokerMessage.BrokerBrokerSmallerMessage(
-                                smallerMessage.leaderBrokerId, partition.getFirst().replicaBrokerId,
-                                smallerMessage.partitionId, partition.getFirst().headIndex, partition.getSecond(),
+                                smallerMessage.leaderBrokerId,
+                                partition.getFirst().replicaBrokerId,
+                                smallerMessage.partitionId,
+                                partition.getFirst().headIndex,
+                                partition.getSecond(),
                                 MessageType.RECEIVE_PARTITION_BECOME_LEADER
                         )
                 );
@@ -126,6 +129,7 @@ public class BrokerServerServiceImpl implements BrokerServerService {
                         brokerBrokerMessage,
                         BrokerBrokerMessage.class
                 );
+                dataManager.removePartition(smallerMessage.partitionId);
             } else {
                 throw new IllegalArgumentException("Invalid message type");
             }

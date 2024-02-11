@@ -16,6 +16,7 @@ public class BrokerBrokerMessage {
         public BrokerBrokerSmallerMessage(Integer leaderBrokerId, Integer replicaBrokerId, Integer partitionId, Integer headIndex, String data, MessageType messageType) {
             this.leaderBrokerId = leaderBrokerId;
             this.replicaBrokerId = replicaBrokerId;
+            this.headIndex = headIndex;
             this.partitionId = partitionId;
             this.data = data;
             this.messageType = messageType;

@@ -3,7 +3,6 @@ package MQproject.broker.Implementation;
 import MQproject.broker.Interface.BrokerBrokerService;
 import MQproject.broker.Interface.BrokerClientService;
 import MQproject.broker.Interface.DataManager;
-import MQproject.broker.model.dataManagerModels.Partition;
 import MQproject.broker.model.message.BrokerClientMessage;
 import MQproject.broker.model.message.BrokerServerMessageAboutClients;
 import MQproject.broker.model.message.MessageType;
@@ -71,17 +70,16 @@ public class BrokerClientServiceImpl implements BrokerClientService {
     public void updateClients(BrokerServerMessageAboutClients message) {
         for (BrokerServerMessageAboutClients.BrokerServerSmallerMessageAboutClients smallerMessage : message.messages) {
             if (smallerMessage.messageType == MessageType.INFORM_ABOUT_PRODUCER) {
-                if (smallerMessage.partitions == null){
+                if (smallerMessage.partitions == null) {
                     throw new IllegalArgumentException("Invalid message");
                 }
                 producersPartitions.put(smallerMessage.clientId, smallerMessage.partitions);
             } else if (smallerMessage.messageType == MessageType.INFORM_ABOUT_CONSUMER) {
-                if (smallerMessage.partitions == null){
+                if (smallerMessage.partitions == null) {
                     throw new IllegalArgumentException("Invalid message");
                 }
                 consumersPartitions.put(smallerMessage.clientId, smallerMessage.partitions);
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException("Invalid message type");
             }
         }
