@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BrokerServerMessageAboutPartitions {
-    public List<BrokerServerSmallerMessageAboutPartitions> messages = new ArrayList<>();
+    public ArrayList<BrokerServerSmallerMessageAboutPartitions> messages = new ArrayList<>();
 
     public static class BrokerServerSmallerMessageAboutPartitions extends BaseMessage {
         public Integer partitionId;

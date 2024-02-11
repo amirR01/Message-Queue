@@ -3,6 +3,7 @@ package MQproject.broker.Implementation;
 import MQproject.broker.Interface.BrokerBrokerService;
 import MQproject.broker.Interface.BrokerClientService;
 import MQproject.broker.Interface.DataManager;
+import MQproject.broker.model.dataManagerModels.Partition;
 import MQproject.broker.model.message.BrokerClientMessage;
 import MQproject.broker.model.message.BrokerServerMessageAboutClients;
 import MQproject.broker.model.message.MessageType;
@@ -37,6 +38,7 @@ public class BrokerClientServiceImpl implements BrokerClientService {
             List<Integer> changedPartitions = new ArrayList<>();
             BrokerClientMessage responseMessage = new BrokerClientMessage();
             for (Integer partitionId : partitions) {
+                if (dataManager.isPartitionReplica(partitionId)) continue;
                 String data = dataManager.readMessage(partitionId);
                 if (data != null) {
                     responseMessage.messages.add(

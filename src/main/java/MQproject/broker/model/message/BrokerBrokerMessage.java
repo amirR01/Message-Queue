@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BrokerBrokerMessage {
-    public List<BrokerBrokerSmallerMessage> messages = new ArrayList<>();
+    public ArrayList<BrokerBrokerSmallerMessage> messages = new ArrayList<>();
 
     public static class BrokerBrokerSmallerMessage extends BaseMessage {
         public Integer leaderBrokerId;

@@ -22,4 +22,6 @@ public interface DataManager {
     public void removePartition(int partitionId);
 
     public void makePartitionPrimary(int partitionId);
+
+    public Boolean isPartitionReplica(int partitionId);
 }

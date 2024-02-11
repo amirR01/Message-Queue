@@ -210,4 +210,9 @@ public class DataManagerImpl implements DataManager {
         this.config = config;
     }
 
+    public Boolean isPartitionReplica(int partitionId){
+        return partitions.get(partitionId).isReplica;
+    }
+
+
 }
