@@ -9,11 +9,6 @@ import MQproject.broker.model.message.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-
-
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,21 +20,6 @@ public class BrokerClientServiceImpl implements BrokerClientService {
 
     @Autowired
     public BrokerBrokerService brokerBrokerService;
-
-        // Monitoring Section
-
-    private static final Gauge pushCounter = Gauge.build()
-        .name("push_counter")
-        .help("Number of pushes.")
-        .register();
-
-    private static final Gauge pullCounter = Gauge.build()
-        .name("pull_counter")
-        .help("Number of pulls.")
-        .register();
-    
-
-
 
 
     private HashMap<Integer, List<Integer>> producersPartitions = new HashMap<>();
@@ -58,7 +38,6 @@ public class BrokerClientServiceImpl implements BrokerClientService {
             BrokerClientMessage responseMessage = new BrokerClientMessage();
             for (Integer partitionId : partitions) {
                 if (dataManager.isPartitionReplica(partitionId)) continue;
-                pullCounter.inc();    // metric
                 String data = dataManager.readMessage(partitionId);
                 if (data != null) {
                     responseMessage.messages.add(
@@ -81,7 +60,6 @@ public class BrokerClientServiceImpl implements BrokerClientService {
                 if (partitions == null || !partitions.contains(smallerMessage.partitionId)) {
                     throw new IllegalArgumentException("Client not allowed to produce to this partition");
                 }
-                pushCounter.inc();   // metric
                 dataManager.addMessage(smallerMessage.data, smallerMessage.partitionId, false);
                 // TODO(): send data for the replicas asynchronously
                 brokerBrokerService.sendDataAsyncToTheReplica(smallerMessage);

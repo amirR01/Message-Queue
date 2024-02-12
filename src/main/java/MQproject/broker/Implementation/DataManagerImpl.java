@@ -3,20 +3,12 @@ package MQproject.broker.Implementation;
 import MQproject.broker.Interface.DataManager;
 import MQproject.broker.model.dataManagerModels.DataManagementConfig;
 import MQproject.broker.model.dataManagerModels.Partition;
-import io.prometheus.client.Gauge;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
-import io.prometheus.client.Counter;
-import io.prometheus.client.Gauge;
-
-
-
 
 import java.io.*;
 import java.util.HashMap;
@@ -31,12 +23,6 @@ public class DataManagerImpl implements DataManager {
     // TODO: remove read messages and free the disk
     // kafka uses segments to handle files not getting to big.
 
-    private static final Gauge diskUsageGauge = Gauge.build()
-            .name("disk_usage_bytes")
-            .help("Current disk usage in bytes")
-            .register();
-
-
     @PostConstruct
     public void init() {
 //        try {
@@ -44,27 +30,6 @@ public class DataManagerImpl implements DataManager {
 //        } catch (IOException e) {
 //            e.printStackTrace(); // Handle the exception according to your application's requirements
 //        }
-    }
-
-    // not used
-    private static void updateDiskUsage(String directoryPath) {
-        // Create a File object for the directory
-        File directory = new File(directoryPath);
-
-        // Define a lambda function to update the gauge metric
-        Runnable task = () -> {
-            long totalSpace = directory.getTotalSpace(); // Total disk space in bytes
-            long freeSpace = directory.getFreeSpace();   // Free disk space in bytes
-            long usedSpace = totalSpace - freeSpace;     // Used disk space in bytes
-
-            // Set the gauge metric value to the used disk space
-            diskUsageGauge.set(usedSpace);
-        };
-
-        // Schedule the task to run every minute
-        // You can adjust the schedule as needed
-        java.util.concurrent.ScheduledExecutorService scheduler = java.util.concurrent.Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(task, 0, 1, java.util.concurrent.TimeUnit.MINUTES);
     }
 
     // TODO(): search to know it that reduce performance that all files are in same directory
