@@ -156,25 +156,22 @@ public class ServerImplementation implements ServerService {
 
     private void responseToApiCallMapping(ArrayList<LoadBalancerResponse> responses) {
         for (LoadBalancerResponse response : responses) {
+            requests.inc();
+
             switch (response.getAction()) {
                 case MOVE_PARTITION:
-                    requests.inc();
                     movePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
                     break;
                 case REMOVE_PARTITION:
-                    requests.inc();
                     removePartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 case CLONE_PARTITION:
-                    requests.inc();
                     clonePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
                     break;
                 case ADD_PARTITION:
-                    requests.inc();
                     addPartitionAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 case BECOME_PARTITION_LEADER:
-                    requests.inc();
                     becomeLeaderAPI(response.getSourceBrokerId(), response.getPartitionId());
                     break;
                 default:
