@@ -43,7 +43,9 @@ public class ServerImplementation implements ServerService {
 
     private void createMetrics() {
         registerBrokerApi = meterRegistry.counter("registerBrokerApi");
-        meterRegistry.getMeters();
+        registerConsumerApi = meterRegistry.counter("registerConsumerApi");
+        rebalanceRequestsCount = meterRegistry.counter("rebalanceRequestsCount");
+        addPartitionApi = meterRegistry.counter("addPartitionApi");
     }
 
     private final HashMap<Integer, Client> allConsumersIds = new HashMap<>();
@@ -68,67 +70,11 @@ public class ServerImplementation implements ServerService {
     public HashMap<String, Integer> keyToPartition = new HashMap<>();
 
 
-//    // Monitoring Section
-//    private final Counter requests = Counter.build()
-//            .name("requests_total")
-//            .help("Total number of requests.")
-//            .register();
 
     private Counter registerBrokerApi;
-//    private final Counter successfulRequests = Counter.build()
-//            .name("successful_requests_total")
-//            .help("Total number of successful requests.")
-//            .register();
-
-//    private final Counter failedRequests = Counter.build()           // put this on exceptions
-//            .name("failed_requests_total")
-//            .help("Total number of failed requests.")
-//            .register();
-
-//    private final Gauge activeConsumers = Gauge.build()
-//            .name("active_consumers")
-//            .help("Number of active consumers.")
-//            .register();
-//
-//    private final Gauge activeBrokers = Gauge.build()
-//            .name("active_brokers")
-//            .help("Number of active brokers.")
-//            .register();
-//
-//    private final Gauge partitionsAdded = Gauge.build()
-//            .name("partitions_added_total")
-//            .help("Total number of partitions added.")
-//            .register();
-//
-//    private final Gauge registeredConsumers = Gauge.build()
-//            .name("registered_consumers")
-//            .help("Number of consumers registered.")
-//            .register();
-//
-//    private static final Gauge registeredProducers = Gauge.build()
-//            .name("registered_producers")
-//            .help("Number of producers registered.")
-//            .register();
-//
-//    private static final Gauge discUsage = Gauge.build()
-//            .name("disc_usage")
-//            .help("Disc Usage by total brokers.")
-//            .register();
-
-    private int checkDiscUsage() {
-
-        return 0; // on safe disc usage
-
-        // otherwise return -1
-    }
-//
-//    private void updateActiveConsumers() {
-//        activeConsumers.set(allConsumersIds.size());
-//    }
-//
-//    private void updateActiveBrokers() {
-//        activeBrokers.set(brokersIds.size());
-//    }
+    private Counter registerConsumerApi;
+    private Counter addPartitionApi;
+    private Counter rebalanceRequestsCount;
 
 
     public static void main(String[] args) {
@@ -156,6 +102,7 @@ public class ServerImplementation implements ServerService {
 
     // can be used in scaling up system 
     public void addPartitionUtil(Integer producerId, String key) {
+        addPartitionApi.increment();
         int partitionId = generateToken();
         keyToPartition.put(key, partitionId);
         ArrayList<LoadBalancerResponse> responses =
@@ -172,7 +119,7 @@ public class ServerImplementation implements ServerService {
 
     private void responseToApiCallMapping(ArrayList<LoadBalancerResponse> responses) {
         for (LoadBalancerResponse response : responses) {
-
+            rebalanceRequestsCount.increment();
             switch (response.getAction()) {
                 case MOVE_PARTITION:
                     movePartitionAPI(response.getSourceBrokerId(), response.getDestinationBrokerId(), response.getPartitionId());
@@ -290,7 +237,7 @@ public class ServerImplementation implements ServerService {
     }
 
     // TODO:
-//    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 60000)
     private void checkBrokersStatus() {
         long currentTime = System.currentTimeMillis();
         List<Integer> inactiveBrokers = new ArrayList<>();
@@ -319,7 +266,7 @@ public class ServerImplementation implements ServerService {
     }
 
 
-    @Scheduled(fixedRate = 60000)
+    @Scheduled(fixedRate = 15000)
     private void checkConsumerStatus() {
         long currentTime = System.currentTimeMillis();
         List<Integer> inactiveConsumers = new ArrayList<>();
@@ -390,6 +337,7 @@ public class ServerImplementation implements ServerService {
         if (smallerMessage.messageType == MessageType.ASSIGN_BROKER) {
             // TODO: check the constraint
             if (consumerIdToPartitions.get(smallerMessage.clientId) == null) {
+                registerConsumerApi.increment();
                 allConsumersIds.put(smallerMessage.clientId, new Client(smallerMessage.clientId, ClientType.CONSUMER));
                 consumerLoadBalancer.balanceOnConsumerBirth(
                         consumerIdToPartitions,
