@@ -23,5 +23,5 @@ public interface DataManager {
 
     public void makePartitionPrimary(int partitionId);
 
-    public Boolean isPartitionReplica(int partitionId);
+    public Boolean isPartitionReplicaOrNotHere(int partitionId);
 }

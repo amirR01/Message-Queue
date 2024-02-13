@@ -37,7 +37,7 @@ public class BrokerClientServiceImpl implements BrokerClientService {
             List<Integer> changedPartitions = new ArrayList<>();
             BrokerClientMessage responseMessage = new BrokerClientMessage();
             for (Integer partitionId : partitions) {
-                if (dataManager.isPartitionReplica(partitionId)) continue;
+                if (dataManager.isPartitionReplicaOrNotHere(partitionId)) continue;
                 String data = dataManager.readMessage(partitionId);
                 if (data != null) {
                     responseMessage.messages.add(
