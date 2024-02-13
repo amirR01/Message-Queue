@@ -31,7 +31,7 @@ variables:
   key: "$CI_COMMIT_REF_NAME"
   DEPLOY_SERVER: "213.233.184.222"
   DEPLOY_USER: "user01"
-  COMPOSE_PATH: "/app/broker/docker-compose.yml"
+  COMPOSE_PATH: "/app/docker-compose.yml"
 
 
 unit-test-job: # This job runs in the test stage.
