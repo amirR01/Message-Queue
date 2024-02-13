@@ -92,6 +92,8 @@ deploy-job:
     - main
   before_script:
     - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
   script:
     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
