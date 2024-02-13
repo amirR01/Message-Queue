@@ -32,6 +32,7 @@ variables:
   DEPLOY_SERVER: "141.11.37.78"
   DEPLOY_USER: "rahmat"
   COMPOSE_PATH: "/app/docker-compose.yml"
+  PASSWORD: "rahmat"
 
 
 unit-test-job: # This job runs in the test stage.
@@ -93,8 +94,6 @@ deploy-job:
   before_script:
     - apk add --no-cache openssh-client
     - apk add --no-cache netcat-openbsd # Install netcat
-    -  chmod 400 "$SSH_PRIVATE_KEY"
-    - ssh-add "$SSH_PRIVATE_KEY"
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
@@ -102,4 +101,4 @@ deploy-job:
     - nc -zv "$DEPLOY_SERVER" 9011
     # - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     # - chmod 600 ~/.ssh/id_rsa
-    - ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+    - sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
