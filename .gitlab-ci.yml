@@ -112,4 +112,7 @@ deploy-job:
     - nc -zv "$DEPLOY_SERVER" 9011
     # - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     # - chmod 600 ~/.ssh/id_rsa
-    - sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "cd app && docker compose pull && docker compose up -d  --force-recreate"
+    - sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "cd app && docker compose pull"
+
+
+# && docker compose up -d  --force-recreate
