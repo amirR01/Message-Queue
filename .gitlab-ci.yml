@@ -92,9 +92,12 @@ deploy-job:
     - main
   before_script:
     - apk add --no-cache openssh-client
+    - apk add --no-cache netcat-openbsd # Install netcat
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
+    # Check if port 22 is reachable on the server
+    - nc -zv "$DEPLOY_SERVER" 22
     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
     - ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
