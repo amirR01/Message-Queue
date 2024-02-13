@@ -1,22 +1,28 @@
-import requests
+# import requests
 import threading
-import time
 import json
+import requests
 
-class PythonClient:
-    def __init__(self, base_url):
-        self.base_url = base_url
+class Client:
+    def __init__(self, server_address, server_port):
+        self.base_url = f'http://{server_address}:{server_port}/api/python'
 
-    def pull(self):
-        response = requests.post(f'{self.base_url}/pull')
-        return response.text
 
+class Producer(Client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
     def push(self, key, message):
         headers = {'Content-Type': 'application/json'}
         response = requests.post(f'{self.base_url}/push', data=json.dumps({'key': key, 'message': message}), headers = headers)
         return response.text
 
-    def subscribe(self, f):
+
+class Consumer(Client):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def subscribe(self, f): # consumer
         # create a thread that sends a subscribe request
         response = requests.post(f'{self.base_url}/subscribe')
         if response.text == "OK":
@@ -30,3 +36,7 @@ class PythonClient:
                 if i == 5:
                     response = requests.post(f'{self.base_url}/subscribe')
                     i = 0
+    
+    def pull(self):
+        response = requests.post(f'{self.base_url}/pull')
+        return response.text
