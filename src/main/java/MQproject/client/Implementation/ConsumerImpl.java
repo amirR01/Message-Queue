@@ -165,7 +165,7 @@ public class ConsumerImpl implements Consumer {
             myConsumerID = response.clientId;
         } catch (Exception e) {
             // retry
-            e.printStackTrace();
+            System.out.println("trying to connect to the server");
             // stack overflow probability
             try {
                 sleep(5000);

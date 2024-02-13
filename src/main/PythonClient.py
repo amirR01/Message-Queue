@@ -22,7 +22,6 @@ class PythonClient:
         if response.text == "OK":
             i = 0
             while True:
-                time.sleep(5)
                 i += 1
                 response = requests.post(f'{self.base_url}/pull-as-subscriber')
                 thread = threading.Thread(target=f, args=(response.text,))

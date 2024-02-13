@@ -23,11 +23,7 @@ public class ProducerImpl implements Producer {
     @Autowired
     public ServerCaller serverCaller;
 
-//    @Autowired
-//    public MeterRegistery meterRegistery;
-
     private HashMap<String, Tuple<Integer, Tuple<Integer, Tuple<String, Integer>>>> addressMap = new HashMap<>();
-    // first: key, second: partition ID, third: brokerID, fourth: brokerIP, fifth: port
     public Integer myProducerID;
 
     @Value("${MQproject.client.my.address}")
@@ -114,7 +110,7 @@ public class ProducerImpl implements Producer {
             myProducerID = response.clientId;
         } catch (Exception e) {
             // retry
-            e.printStackTrace();
+            System.out.println("trying to connect to server");
             // stack overflow probability
             try {
                 sleep(5000);
@@ -123,7 +119,6 @@ public class ProducerImpl implements Producer {
             }
             registerToServer();
         }
-//        Counter.builder("meter name ").register()
     }
 
 }
