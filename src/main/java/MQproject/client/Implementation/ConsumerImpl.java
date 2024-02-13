@@ -66,7 +66,7 @@ public class ConsumerImpl implements Consumer {
         ConsumerServerMessage bigMessage = new ConsumerServerMessage();
         bigMessage.messages.add(
                 new ConsumerServerMessage.ConsumerServerSmallerMessage(
-                        myConsumerID, null, null, null, null, MessageType.PULL_BROKER)
+                        myConsumerID, null, null, null, null, MessageType.ASSIGN_BROKER)
         );
         ConsumerServerMessage.ConsumerServerSmallerMessage response =
                 serverCaller.assignBroker(bigMessage).messages.get(0);
