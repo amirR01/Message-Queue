@@ -32,7 +32,6 @@ variables:
   DEPLOY_SERVER: "141.11.37.78"
   DEPLOY_USER: "rahmat"
   COMPOSE_PATH: "/app/docker-compose.yml"
-  PASSWORD: "rahmat"
 
 
 unit-test-job: # This job runs in the test stage.
