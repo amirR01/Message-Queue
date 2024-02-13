@@ -17,3 +17,59 @@ services:
     restart: unless-stopped
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+
+  server:
+    image: registry.gitlab.com/amirr01/mq-sad-1402-1-server:latest
+    volumes:
+      - ./server/application.properties:/app/application.properties
+    ports:
+      - "8085:8080"
+
+  broker1:
+    image: registry.gitlab.com/amirr01/mq-sad-1402-1-broker:latest
+    volumes:
+      - ./broker1/data:/app/data
+      - ./broker1/application.properties:/app/application.properties
+    ports:
+      - "8081:8080"
+  broker2:
+    image: registry.gitlab.com/amirr01/mq-sad-1402-1-broker:latest
+    volumes:
+      - ./broker2/data:/app/data
+      - ./broker2/application.properties:/app/application.properties
+    ports:
+      - "8082:8080"
+  broker3:
+    image: registry.gitlab.com/amirr01/mq-sad-1402-1-broker:latest
+    volumes:
+      - ./broker3/data:/app/data
+      - ./broker3/application.properties:/app/application.properties
+    ports:
+      - "8083:8080"
+
+#  producer1:
+#    image: registry.gitlab.com/amirr01/mq-sad-1402-1-java-client:latest
+#    volumes:
+#      - ./producer1/application.properties:/app/application.properties
+#    ports:
+#      - "8085:8080"
+
+#
+#  5403  vim docker-compose.yml
+#  5404  docker compose up -d --remove-orphans
+#  5405  docker compose ls
+#  5406  docker compose ps
+#  5407  vim docker-compose.yml
+#  5408  docker compose up -d app --scale 10
+#  5409  docker compose up -d app --scale app=10
+#  5410  docker compose exec nginx bash
+#  5411  docker compose ps
+#  5412  vim docker-compose.yml
+#  5413  docker compose up -d --remove-orphans
+#  5414  vim docker-compose.yml
+#  5415  docker compose up -d
+#  5416  docker compose exec nginx bash
+#  5417  curl -v http://app:80
+#  5418  docker compose ps
+#  5419  docker compose exec zk bash
+#  5420  history
