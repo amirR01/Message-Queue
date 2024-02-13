@@ -29,8 +29,8 @@ cache:
 
 variables:
   key: "$CI_COMMIT_REF_NAME"
-  DEPLOY_SERVER: "213.233.184.222"
-  DEPLOY_USER: "user01"
+  DEPLOY_SERVER: "141.11.37.78"
+  DEPLOY_USER: "rahmat"
   COMPOSE_PATH: "/app/docker-compose.yml"
 
 
@@ -97,7 +97,7 @@ deploy-job:
     - chmod 700 ~/.ssh
   script:
     # Check if port 22 is reachable on the server
-    - nc -zv "$DEPLOY_SERVER" 22
+    - nc -zv "$DEPLOY_SERVER" 9011
     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    - ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+    - ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
