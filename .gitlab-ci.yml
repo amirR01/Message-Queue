@@ -96,4 +96,4 @@ build-docker:
 #     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
 #     - chmod 600 ~/.ssh/id_rsa
 #     - ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
-#     - ssh $DEPLOY_USER@$DEPLOY_SERVER "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+#     - ssh $DEPLOY_USER@$DEPLOY_SERVER "cd app && docker compose pull && docker compose up -d --force-recreate"
