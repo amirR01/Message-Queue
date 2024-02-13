@@ -13,7 +13,7 @@ def pull():
     return consumer.pull()
 
 def push(key, val):
-    producer.push(key, val)
+    return producer.push(key, val)
 
 def subscribe(action):
     consumer.subscribe(action)
