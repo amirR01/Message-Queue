@@ -94,8 +94,18 @@ deploy-job:
   before_script:
     - apk add --no-cache openssh-client
     - apk add --no-cache netcat-openbsd # Install netcat
-    
-
+    # Install build dependencies
+    - apk add --no-cache --virtual .build-deps build-base
+    # Download and extract sshpass source
+    - wget https://sourceforge.net/projects/sshpass/files/sshpass/1.09/sshpass-1.09.tar.gz
+    - tar -xf sshpass-1.09.tar.gz
+    # Compile and install sshpass
+    - cd sshpass-1.09
+    - ./configure
+    - make
+    - make install
+    # Clean up build dependencies
+    - apk del .build-deps
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   script:
@@ -103,4 +113,4 @@ deploy-job:
     - nc -zv "$DEPLOY_SERVER" 9011
     # - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
     # - chmod 600 ~/.ssh/id_rsa
-    - ssh -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+    - sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$DEPLOY_USER@$DEPLOY_SERVER" -p 9011 "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
