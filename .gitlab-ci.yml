@@ -19,7 +19,6 @@
 stages: # List of stages for jobs, and their order of execution
   - test
   - build
-  - deploy
 
 
 cache:
@@ -85,15 +84,15 @@ build-docker:
 #    - sleep 10
 #    - echo "No lint issues found."
 
-deploy-job:
-  image: alpine
-  stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
-  only:
-    - main
-  before_script:
-    - apk add --no-cache openssh-client
-  script:
-    - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
-    - ssh $DEPLOY_USER@$DEPLOY_SERVER "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
+# deploy-job:
+#   image: alpine
+#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+#   only:
+#     - main
+#   before_script:
+#     - apk add --no-cache openssh-client
+#   script:
+#     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
+#     - ssh $DEPLOY_USER@$DEPLOY_SERVER "docker compose pull && docker compose up -d -f $COMPOSE_PATH --force-recreate"
