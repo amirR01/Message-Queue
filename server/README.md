@@ -1,41 +1,27 @@
-# MQ-SAD-1402-1-SERVER
-<!-- 
-## Name
-Choose a self-explaining name for your project.
+# Sever
+The server is responsible for managing the brokers and the clients. The server is responsible for rebalancing the partitions between the brokers and the clients.
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+## Implementation Details
+The server is implemented in `java` using `spring-boot` framework. It has 3 controllers for Server-Broker, Server-Consumer, and Server-Producer communication. And also it has 3 services for the Main Service, `BrokerLoadBalancer`, and `ConsumerLoadBalancer`. Also the artitecture of a interface and a implementation for each service is used to make the development more flexible.
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Server-Broker Communication
+Eech broker should register itself to the server and send its information to the server. After that each broker should send a heartbeat to the server to show that it is alive. The server checks the heartbeats and if a broker does not send a heartbeat for a specific time, the server will consider the broker as failed and will call `balanceOnBrokerDeath` method of the `BrokerLoadBalancer` service to rebalance the partitions between the available brokers.
+by the changes in the partitions, the server will send the needed actions to the brokers to update their partitions.
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+## Server-Consumer Communication
+Each consumer should register itself to the server and send its information to the server. The server will assign the partitions to the consumers based on the load of the consumers.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## Server-Producer Communication
+Each producer should register itself to the server and send its information to the server. By sending the key of the message, the server will assign the partition to the producer based on the key.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+## Load Balancing
+The server uses `BrokerLoadBalancer` and `ConsumerLoadBalancer` services to balance the load between the brokers and the consumers. The `BrokerLoadBalancer` service is responsible for balancing the partitions between the brokers. The `ConsumerLoadBalancer` service is responsible for balancing the partitions between the consumers. The balancer awlays tries to balance the load uniformly between the brokers and the consumers. And also tries not to request the brokers and the consumers to do unnecessary actions. the events that activate the balancers are:
+- A broker failure
+- A consumer failure
+- A new broker registration
+- A new consumer registration
+- A new partition assignment
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers. -->
