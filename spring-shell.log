@@ -2,3 +2,5 @@
 1707734081401:produce --key salam --value setareee
 1707734120758:subsrcibe
 1707734126878:subscribe
+1707860394779:produce --key x --value y
+1707860403105:produce --key x --value z

@@ -26,9 +26,8 @@ while True:
         print(consumer.pull())
     
     elif command == 'subscribe':
-        def print_message(messages):
-            messages = eval(messages)
-            print('\n'.join(messages))
+        def print_message(key,value):
+            print(key, value)
         consumer.subscribe(print_message)
     
     elif command[:4] == 'push':

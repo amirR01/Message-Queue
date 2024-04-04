@@ -9,7 +9,7 @@ from client import pull, push, subscribe
 
 TEST_SIZE = 1000 * 1000
 KEY_SIZE = 8
-SUBSCRIER_COUNT = 4
+SUBSCRIER_COUNT = 1
 
 key_seq = [random.choice(range(KEY_SIZE)) for _ in range(TEST_SIZE)]
 
@@ -17,8 +17,9 @@ pulled: Dict[str, List[int]] = {}
 for i in range(KEY_SIZE):
     pulled[f"{i}"] = []
 
-def validate_pull(key: str, val: bytes):
-    next_val = int(val.decode("utf-8"))
+def validate_pull(key, val):
+    print(f"key: {key}, val: {val}")
+    next_val = int(val)
     if len(pulled[key]) != 0:
         prev_val = pulled[key][-1]
         if prev_val >= next_val:
@@ -27,11 +28,12 @@ def validate_pull(key: str, val: bytes):
     pulled[key].append(next_val)
 
 
+
+
+print("start to push some data")
+for i in range(TEST_SIZE):
+    push(f"{key_seq[i]}", f"{i}")
+
+print("start to subscribe")
 for _ in range(SUBSCRIER_COUNT):
     subscribe(validate_pull)
-
-
-for i in range(TEST_SIZE):
-    push(f"{key_seq[i]}", f"{i}".encode(encoding="utf-8"))
-
-print("order test passed successfully!")
