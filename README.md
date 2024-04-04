@@ -5,6 +5,7 @@ The project consists of three microservices: [**broker**](https://github.com/ami
 
 picture below shows simplified version of the system design. you can find more details in each service's readme.
 
+![imageedit_6_9815287502](https://github.com/amirR01/Message-Queue/assets/78862582/0cdef36a-1588-459c-8836-f4c26ee64eab)
 
 
 ## Functional Requirements
@@ -51,7 +52,9 @@ We used `Gitlab CI/CD` for testing, building, and deploying the system. The CI/C
 - **Deploy**: pull the images and compose the services on the server.
 
 The picture below shows the CI/CD pipeline. Project piplines from the beginning are available in the gitlab repository of each service.
-image
+
+<img width="459" alt="Screenshot 2024-04-05 at 2 07 58 AM" src="https://github.com/amirR01/Message-Queue/assets/78862582/35ed9903-f60c-4093-b188-8fae5611429c">
+
 
 gitlab repositories:
 [server](https://gitlab.com/amirR01/MQ-SAD-1402-1-SERVER), [broker](https://gitlab.com/amirR01/mq-sad-1402-1-broker), [client](https://gitlab.com/amirR01/mq-sad-1402-1-java-client)
