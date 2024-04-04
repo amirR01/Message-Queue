@@ -1,0 +1,99 @@
+# This file is a template, and might need editing before it works on your project.
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+#
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+#
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+
+stages: # List of stages for jobs, and their order of execution
+  # - test
+  - build
+#   - deploy
+
+
+cache:
+  paths:
+    - .m2/repository/
+  key: "$CI_BUILD_REF_NAME"
+
+variables:
+  key: "$CI_COMMIT_REF_NAME"
+  DEPLOY_SERVER: "156.253.5.245"
+  DEPLOY_USER: "user01"
+  COMPOSE_PATH: "/app/docker-compose.yml"
+
+
+# unit-test-job: # This job runs in the test stage.
+#   stage: test    # It only starts when the job in the build stage completes successfully.
+#   image: maven:3.9.6-eclipse-temurin-17
+#   script:
+#     - echo "Running unit tests... This will take about 60 seconds."
+#     - mvn -q -nsu clean test
+#     - echo "Code coverage is 90%"
+
+build: # This job runs in the build stage, which runs first.
+  stage: build
+  image: maven:3.9.6-eclipse-temurin-17
+  only:
+    - main
+  script:
+    - echo "Building the application... This will take about 60 seconds."
+    - mvn -q -nsu -DskipTests clean package
+    - echo "Application successfully built."
+  artifacts:
+    paths:
+      - target/*.jar
+
+
+
+
+build-docker:
+  stage: build
+  image:
+    name: docker:24.0.5
+  services:
+    - name: docker:24.0.5-dind
+      alias: thedockerhost
+  variables:
+    DOCKER_HOST: tcp://thedockerhost:2375/
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: ""
+  needs:
+    - build
+  only:
+    - main
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME -t $CI_REGISTRY_IMAGE:latest .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+    - docker push $CI_REGISTRY_IMAGE:latest
+#lint-test-job:   # This job also runs in the test stage.
+#  stage: test    # It can run at the same time as unit-test-job (in parallel).
+#  script:
+#    - echo "Linting code... This will take about 10 seconds."
+#    - sleep 10
+#    - echo "No lint issues found."
+
+# deploy-job:
+#   image: alpine
+#   stage: deploy  # It only runs when *both* jobs in the test stage complete successfully.
+#   only:
+#     - main
+#   before_script:
+#     - apk add --no-cache openssh-client
+#   script:
+#     - echo $SSH_PRIV_KEY > ~/.ssh/id_rsa
+#     - chmod 600 ~/.ssh/id_rsa
+#     - ssh-keyscan -H $DEPLOY_SERVER >> ~/.ssh/known_hosts
+#     - ssh $DEPLOY_USER@$DEPLOY_SERVER "cd app && docker compose pull && docker compose up -d --force-recreate"
