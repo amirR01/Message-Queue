@@ -1,1 +1,0 @@
-{"1110834544":{"partitionId":1110834544,"leaderBrokerId":4681433,"replicaBrokerId":953062460,"headIndex":38,"isReplica":false,"partitionsAddress":"./data-2/partitions1110834544.txt"},"334300986":{"partitionId":334300986,"leaderBrokerId":953062460,"replicaBrokerId":4681433,"headIndex":0,"isReplica":true,"partitionsAddress":"./data-2/partitions334300986.txt"}}
